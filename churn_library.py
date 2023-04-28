@@ -1,10 +1,11 @@
-# library doc string
+"""
+TODO Module docstring should go here.
+"""
 
 
 # import libraries
 import os
-os.environ['QT_QPA_PLATFORM']='offscreen'
-
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 
 def import_data(pth):
@@ -15,8 +16,8 @@ def import_data(pth):
             pth: a path to the csv
     output:
             df: pandas dataframe
-    '''	
-	pass
+    '''
+    pass
 
 
 def perform_eda(df):
@@ -28,7 +29,7 @@ def perform_eda(df):
     output:
             None
     '''
-	pass
+    pass
 
 
 def encoder_helper(df, category_lst, response):
@@ -59,6 +60,7 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
+
 
 def classification_report_image(y_train,
                                 y_test,
@@ -95,6 +97,7 @@ def feature_importance_plot(model, X_data, output_pth):
              None
     '''
     pass
+
 
 def train_models(X_train, X_test, y_train, y_test):
     '''
