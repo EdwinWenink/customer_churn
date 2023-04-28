@@ -84,70 +84,24 @@ def perform_eda(df: pd.DataFrame) -> None:
     plot_correlation_heatmap(df, out_fn=f"eda/heatmap.png")
 
 
-def encoder_helper(df: pd.DataFrame, category_list: List[str], response: str) -> pd.DataFrame:
+def encoder_helper(df: pd.DataFrame, cat_columns: List[str],
+                   response: str = '_churn') -> pd.DataFrame:
     '''
     Helper function to turn each categorical column into a new column with
     proportion of churn for each category.
 
     Args:
         df: pandas dataframe
-        category_list: list of columns that contain categorical features
+        cat_columns: list of columns that contain categorical features
         response: string of response name [optional argument that could be used
                   for naming variables or index y column]
 
     Returns:
-            df: pandas dataframe with encoded categorical columns
+            df: pandas dataframe with the new columns
     '''
-    # TODO REFACTOR FROM HERE
-    # 1. Make more efficient
-    # 2. Make function (4x duplicated)
-
-    # Gender encoded column
-    gender_lst = []
-    gender_groups = df.groupby('gender').mean(numeric_only=True)['churn']
-
-    for val in df['gender']:
-        gender_lst.append(gender_groups.loc[val])
-
-    df['gender_churn'] = gender_lst
-
-    # Education encoded column
-    edu_lst = []
-    edu_groups = df.groupby('education_level').mean()['churn']
-
-    for val in df['education_level']:
-        edu_lst.append(edu_groups.loc[val])
-
-    df['education_level_churn'] = edu_lst
-
-    # Marital encoded column
-    marital_lst = []
-    marital_groups = df.groupby('marital_status').mean()['churn']
-
-    for val in df['marital_status']:
-        marital_lst.append(marital_groups.loc[val])
-
-    df['marital_status_churn'] = marital_lst
-
-    # Income encoded column
-    income_lst = []
-    income_groups = df.groupby('income_category').mean()['churn']
-
-    for val in df['income_category']:
-        income_lst.append(income_groups.loc[val])
-
-    df['income_category_churn'] = income_lst
-
-    # card encoded column
-    card_lst = []
-    card_groups = df.groupby('card_category').mean()['churn']
-
-    for val in df['card_category']:
-        card_lst.append(card_groups.loc[val])
-
-    df['card_category_churn'] = card_lst
-
-    # TODO REFACTOR ABOVE
+    for cat_col in cat_columns:
+        mean_churn_per_group = df.groupby(cat_col).mean(numeric_only=True)['churn']
+        df[f"{cat_col}{response}"] = df[cat_col].map(mean_churn_per_group)
 
     return df
 
@@ -167,7 +121,7 @@ def perform_feature_engineering(df: pd.DataFrame, response: str) ->\
               y_test: y testing data
     '''
 
-    # TODO what does response do?
+    #
     df = encoder_helper(df, constants.CAT_COLUMNS, response)
 
     # Determine training features `X` and target labels `y`
@@ -242,6 +196,7 @@ if __name__ == '__main__':
     df = import_data(INPUT_PATH)
     perform_eda(df)
 
-    response = 'what does this do?'
+    # TODO what does response do? Does this make sense?
+    response = constants.RESPONSE
     X_train, X_test, y_train, y_test = perform_feature_engineering(df, response)
     print(X_train.head())
