@@ -60,14 +60,15 @@ def plot_hist_with_kde(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | 
 
 def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
                              out_fn: str | None = None, *args, **kwargs) -> None:
+    """Plot a heatmap showing pairwise correlation between all variables."""
     fig = plt.figure(figsize=figsize)
     sns.heatmap(df.corr(numeric_only=True), annot=False,
-                cmap='Dark2_r', linewidths = 2)
+                cmap='Dark2_r', linewidths=2)
     save_or_show(out_fn)
 
 
 def save_or_show(out_fn: str | None) -> None:
-    """Utility function to save a plot to an image folder, or show the plot otherwise."""
+    """Save a pyplot figure to an image folder, or show the plot otherwise."""
     if out_fn:
         plt.savefig(IMG_DIR / out_fn)
     else:
