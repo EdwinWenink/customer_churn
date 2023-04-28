@@ -2,53 +2,102 @@
 TODO Module docstring should go here.
 """
 
-
-# import libraries
 import os
+from typing import List, Tuple
+# import shap
+# import joblib
+import pandas as pd
+import numpy as np
+
+from sklearn.preprocessing import normalize
+from sklearn.model_selection import train_test_split
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import plot_roc_curve, classification_report
+
+from constants import CAT_COLUMNS, QUANT_COLUMNS
+from plotting import plot_histogram, plot_normalized_barplot, plot_hist_with_kde, plot_correlation_heatmap
+
+
+# Used within Udacity learning platform
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 
-def import_data(pth):
-    '''
-    returns dataframe for the csv found at pth
+def import_data(path: str) -> pd.DataFrame:
+    """
+    Returns a dataframe for the csv found at `path`.
 
-    input:
-            pth: a path to the csv
-    output:
-            df: pandas dataframe
+    Args:
+        path: a path to an input csv
+
+    Returns:
+        df: pandas dataframe
+    """
+    df = pd.read_csv(path)
+    df = preprocess_data(df)
+    return df
+
+
+def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Preprocess dataframe `df` in place.
+    """
+    # The unnamed column is a duplicate of the index
+    df.drop('Unnamed: 0', axis=1, inplace=True)
+
+    # Consistent lower case for column names
+    df.rename(columns=lambda x: x.lower(), inplace=True)
+
+    # Create a new column specifying the churn as a binary variable
+    df['churn'] = df['attrition_flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
+
+    return df
+
+
+def perform_eda(df: pd.DataFrame) -> None:
+    '''
+    Perform EDA on `df` and save figures to images folder.
+
+    Args:
+        df: pandas dataframe
+    '''
+    print("Data shape:", df.shape)
+    print("Null values per columns:\n", df.isnull().sum())
+    print(df.describe())
+    plot_histogram(df['churn'], bins=np.arange(df['churn'].min()-.1, df['churn'].max()+.1, .1),
+                   align='left', xlabel='Value', ylabel='Counts',
+                   out_fn=f"eda/{df['churn'].name}_distribution.png")
+    plot_histogram(df['customer_age'], xlabel='Value', ylabel='Counts',
+                   out_fn=f"eda/{df['customer_age'].name}_distribution.png")
+    plot_normalized_barplot(df['marital_status'],
+                            out_fn=f"eda/{df['marital_status'].name}_distribution.png")
+    plot_hist_with_kde(df['total_trans_ct'],
+                       out_fn=f"eda/{df['total_trans_ct'].name}_distribution.png")
+    plot_correlation_heatmap(df, out_fn=f"eda/heatmap.png")
+
+
+def encoder_helper(df: pd.DataFrame, category_lst: List[str], response: str) -> pd.DataFrame:
+    '''
+    Helper function to turn each categorical column into a new column with
+    proportion of churn for each category - associated with cell 15 from the notebook
+
+    Args:
+        df: pandas dataframe
+        category_lst: list of columns that contain categorical features
+        response: string of response name [optional argument that could be used for naming variables or index y column]
+
+    Returns:
+            df: pandas dataframe with new columns
     '''
     pass
 
-
-def perform_eda(df):
-    '''
-    perform eda on df and save figures to images folder
-    input:
-            df: pandas dataframe
-
-    output:
-            None
-    '''
-    pass
+    return df
 
 
-def encoder_helper(df, category_lst, response):
-    '''
-    helper function to turn each categorical column into a new column with
-    propotion of churn for each category - associated with cell 15 from the notebook
-
-    input:
-            df: pandas dataframe
-            category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could be used for naming variables or index y column]
-
-    output:
-            df: pandas dataframe with new columns for
-    '''
-    pass
-
-
-def perform_feature_engineering(df, response):
+def perform_feature_engineering(df: pd.DataFrame, response: str) -> Tuple[np.array, np.array,
+                                                                          np.array, np.array]:
     '''
     input:
               df: pandas dataframe
@@ -60,14 +109,16 @@ def perform_feature_engineering(df, response):
               y_train: y training data
               y_test: y testing data
     '''
+    pass
 
 
+# TODO typing
 def classification_report_image(y_train,
                                 y_test,
                                 y_train_preds_lr,
                                 y_train_preds_rf,
                                 y_test_preds_lr,
-                                y_test_preds_rf):
+                                y_test_preds_rf) -> None:
     '''
     produces classification report for training and testing results and stores report as image
     in images folder
@@ -111,3 +162,9 @@ def train_models(X_train, X_test, y_train, y_test):
               None
     '''
     pass
+
+
+if __name__ == '__main__':
+    INPUT_PATH = r"./data/bank_data.csv"
+    df = import_data(INPUT_PATH)
+    perform_eda(df)
