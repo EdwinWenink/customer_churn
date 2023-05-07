@@ -25,7 +25,7 @@ QUANT_COLUMNS = [
     'avg_utilization_ratio'
 ]
 
-RESPONSE = '_churn'
+RESPONSE = 'churn'
 
 KEEP_COLUMNS = ['customer_age', 'dependent_count', 'months_on_book',
                 'total_relationship_count', 'months_inactive_12_mon',

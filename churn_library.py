@@ -85,7 +85,7 @@ def perform_eda(df: pd.DataFrame) -> None:
 
 
 def encoder_helper(df: pd.DataFrame, cat_columns: List[str],
-                   response: str = '_churn') -> pd.DataFrame:
+                   response: str) -> pd.DataFrame:
     '''
     Helper function to turn each categorical column into a new column with
     proportion of churn for each category.
@@ -100,8 +100,8 @@ def encoder_helper(df: pd.DataFrame, cat_columns: List[str],
             df: pandas dataframe with the new columns
     '''
     for cat_col in cat_columns:
-        mean_churn_per_group = df.groupby(cat_col).mean(numeric_only=True)['churn']
-        df[f"{cat_col}{response}"] = df[cat_col].map(mean_churn_per_group)
+        mean_churn_per_group = df.groupby(cat_col).mean(numeric_only=True)[response]
+        df[f"{cat_col}_{response}"] = df[cat_col].map(mean_churn_per_group)
 
     return df
 
@@ -191,7 +191,11 @@ def train_models(X_train, X_test, y_train, y_test):
     pass
 
 
-if __name__ == '__main__':
+    # Compute and store feature importances
+    feature_importance_plot(model = None, X_data=None, output_path=None)
+
+
+def main() -> None:
     INPUT_PATH = r"./data/bank_data.csv"
     df = import_data(INPUT_PATH)
     perform_eda(df)
@@ -200,3 +204,9 @@ if __name__ == '__main__':
     response = constants.RESPONSE
     X_train, X_test, y_train, y_test = perform_feature_engineering(df, response)
     print(X_train.head())
+
+    train_models(X_train, X_test, y_train, y_test)
+
+
+if __name__ == '__main__':
+    main()
