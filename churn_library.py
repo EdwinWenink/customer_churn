@@ -2,26 +2,38 @@
 Module for predicting customer churn.
 """
 
-import os
+import warnings
+import logging
 from typing import List, Tuple
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import shap
+from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 
 from plotting import (plot_histogram, plot_hist_with_kde,
                       plot_normalized_barplot, plot_correlation_heatmap,
                       compare_roc_curves, plot_classification_reports,
                       feature_importance_plot)
 import constants
-from utils import save_model, load_model, grid_search
+from models import ChurnModel
+from utils import save_model
+
+# SHAP throws numba deprecation warnings; suppress until fix is available.
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 # Only needed by Udacity platform
+# import os
 # os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+
+logging.getLogger(__name__)
 
 
 def import_data(path: str) -> pd.DataFrame:
@@ -166,76 +178,43 @@ def classification_report_image(model_name: str,
     train_report = classification_report(y_train, y_train_preds, output_dict=False)
     test_report = classification_report(y_test, y_test_preds, output_dict=False)
 
-    # TODO where to define?
     out_fn = f"results/{model_name}_results.png"
     plot_classification_reports(train_report, test_report, model_name, out_fn)
 
 
+def train_models(models: List[ChurnModel], X_train, X_test, y_train, y_test) -> None:
+    '''
+    Train models and compare their results. The models are persisted to disk.
+    Model results are saved as images.
+
+    Args:
+        models: list of `ChurnModel` objects with a fit and predict function
+        X_train: X training data
+        X_test: X testing data
+        y_train: y training data
+        y_test: y testing data
     '''
 
+    for model in models:
 
-def train_models(X_train, X_test, y_train, y_test):
-    '''
-    train, store model results: images + scores, and store models
-    input:
-              X_train: X training data
-              X_test: X testing data
-              y_train: y training data
-              y_test: y testing data
-    output:
-              None
-    '''
+        # Train and serialize trained model
+        model.train(X_train, y_train)
+        save_model(model, constants.MODEL_DIR / f'{model.name}.pkl')
 
-    # TODO refactor to work for both models?
-    # TODO make a model class; ChurnClassifier? inherit from "ClassifierMixin";
-    # Use a different solver if the default 'lbfgs' fails to converge
-    # Reference: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
-    # NOTE for now only Logistic Regression
-    # TODO how to read in params
-    model = LogisticRegression(solver='lbfgs', max_iter=3000)
+        # Store model results
+        y_train_preds = model.predict(X_train)
+        y_test_preds = model.predict(X_test)
 
-    # TODO hyper param search; define elsewhere
-    GRID_SEARCH = False
-    param_grid = {
-        'n_estimators': [200, 500],
-        'max_features': ['auto', 'sqrt'],
-        'max_depth': [4, 5, 100],
-        'criterion': ['gini', 'entropy']
-    }
+        # Generate a classification report on train and test set
+        classification_report_image(model.name, y_train, y_test,
+                                    y_train_preds, y_test_preds)
 
-    if GRID_SEARCH:
-        model = grid_search(model, X_train, y_train, param_grid, cv=5)
-    else:
-        # Train model without grid search
-        model.fit(X_train, y_train)
+        # Compute and store feature importances
+        feature_importance_plot(model=model._estimator, X_data=X_test,
+                                output_path=None, shap_explainer=model.shap_explainer)
 
-    # Serialize trained model
-    # TODO Make model class?; use model.name
-    save_model(model, constants.MODEL_DIR / 'model.pkl')
-
-    # Store model results
-    '''
-    y_train_preds_lr = None
-    y_train_preds_rf = None
-    y_test_preds_lr = None
-    y_test_preds_rf = None
-    classification_report_image(y_train, y_test, y_train_preds_lr, y_train_preds_rf,
-                                y_test_preds_lr, y_test_preds_rf)
-    '''
-    y_train_preds = model.predict(X_train)
-    y_test_preds = model.predict(X_test)
-
-    # TODO extend with all models
-    # TODO hangs.. "This plugin does not support raise()"
-    compare_roc_curves([model], X_test, y_test)
-
-    # TODO get model name from elsewhere
-    model_name = 'Test'
-    classification_report_image(model_name, y_train, y_test,
-                                y_train_preds, y_test_preds)
-
-    # Compute and store feature importances
-    feature_importance_plot(model=model, X_data=None, output_path=None)
+    # Plot ROC curves of both models in the same plot
+    compare_roc_curves([model._estimator for model in models], X_test, y_test)
 
 
 def main() -> None:
@@ -243,11 +222,37 @@ def main() -> None:
     df = import_data(INPUT_PATH)
     perform_eda(df)
 
-    response = constants.RESPONSE
-    X_train, X_test, y_train, y_test = perform_feature_engineering(df, response)
+    X_train, X_test, y_train, y_test = perform_feature_engineering(df, constants.RESPONSE)
     print(X_train.head())
 
-    train_models(X_train, X_test, y_train, y_test)
+    # Define a Logistic Regression Model
+    # Use a different solver if the default 'lbfgs' fails to converge
+    # Reference: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+    lrc = ChurnModel(
+        estimator=LogisticRegression(solver='lbfgs', max_iter=3000),
+        shap_explainer=shap.LinearExplainer
+    )
+
+    # Define a Random Forest classifier + Grid Search hyperparameter tuning
+    rfc_param_grid = {
+        # 'n_estimators': [200, 500],
+        'n_estimators': [10, 20],
+        'max_features': ['sqrt'],
+        # 'max_depth': [4, 5, 100],
+        'max_depth': [4, 5],
+        'criterion': ['gini', 'entropy']
+    }
+
+    rfc = ChurnModel(
+        estimator=RandomForestClassifier(random_state=42),
+        param_grid=rfc_param_grid,
+        cv=5,
+        shap_explainer=shap.TreeExplainer
+    )
+
+    # Train and evaluate all defined models
+    models = [lrc, rfc]
+    train_models(models, X_train, X_test, y_train, y_test)
 
 
 if __name__ == '__main__':
