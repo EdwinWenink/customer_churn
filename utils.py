@@ -5,6 +5,7 @@ Generic utilities used in `churn_library.py`.
 import joblib
 import logging
 from typing import Any
+from pathlib import Path
 
 import numpy as np
 from sklearn.base import BaseEstimator
@@ -14,7 +15,7 @@ from sklearn.model_selection import GridSearchCV
 logging.getLogger(__name__)
 
 
-def save_model(model: Any, save_path: str):
+def save_model(model: Any, save_path: str | Path):
     """
     Save the model object using joblib. If you provide a file extension
     the best compression method is determined automatically.
@@ -32,7 +33,7 @@ def save_model(model: Any, save_path: str):
         logging.error("During model saving the following error occurred: %s", err)
 
 
-def load_model(model_path: str):
+def load_model(model_path: str | Path):
     """
     Load a model previously written to disk using `save_model` using joblib.
 
@@ -53,7 +54,7 @@ def grid_search(estimator: BaseEstimator, X_train: np.ndarray, y_train: np.ndarr
     Perform grid search with cross validation and return the best estimator.
 
     Args:
-        estimator: scikit-learn BaseEstimator.
+        estimator: scikit-learn BaseEstimator or subclass.
         X_train: input feature array.
         y_train: array of target labels.
         param_grid: parameters with value ranges to do grid search over.

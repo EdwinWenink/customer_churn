@@ -1,8 +1,12 @@
 """
 Utility module containing plotting functions.
+
+TODO FIX: many empty plots are generated.
+TODO FIX: classification report title seems to fall off screen.
 """
 
 from typing import List
+import logging
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -10,11 +14,23 @@ import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.metrics import RocCurveDisplay
+from shap import Explainer
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
+import warnings
 
 from constants import IMG_DIR, DEFAULT_FIG_SIZE
 
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+
 # Apply seaborn styling globally
 sns.set()
+
+# SHAP throws numba deprecation warnings; suppress until fix is available.
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+
+logging.getLogger(__name__)
 
 
 def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | None = None,
@@ -74,7 +90,7 @@ def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
 def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
                        y_test: np.ndarray, figsize=DEFAULT_FIG_SIZE,
                        out_fn: str | None = None) -> None:
-    # TODO module docstring; only appropriate for binary classifier
+    # TODO module docstring; only appropriate for probabilistic binary classifier with predict_proba
     # TODO plot_roc_curve deprecated
     # Use: RocCurveDisplay.from_predictions or ..from_estimator()
     plt.figure(figsize=figsize)
@@ -88,7 +104,7 @@ def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
 
 
 def plot_classification_reports(train_report: str, test_report: str,
-                                model_name: str, out_fn: str) -> None:
+                                model_name: str, out_fn: str | None = None) -> None:
     """Save or show a classification report on train and test sets in text format. """
     font_dict = {'fontsize': 10}
     font_properties = 'monospace'  # approach improved by OP -> monospace!
@@ -101,9 +117,9 @@ def plot_classification_reports(train_report: str, test_report: str,
     save_or_show(out_fn)
 
 
-# TODO typing
 def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
-                            output_path: str | None) -> None:
+                            shap_explainer: Explainer | None = None,
+                            output_path: str | None = None) -> None:
     '''
     Creates and stores the feature importances in `output_path`
     Args:
@@ -111,35 +127,40 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
             X_data: pandas dataframe of X values
             output_path: path to store the figure
     '''
-    # TODO assert has feature_importances_?
+    # If the model has a native feature method for computing
+    # feature importances, use that.
+    if hasattr(model, "feature_importances_"):
+        # Calculate feature importances
+        importances = model.feature_importances_
 
-    # NOTE in notebook *all* data is thrown in here.
-    # Should we not pass train or test separately?
+        # Sort feature importances in descending order
+        indices = np.argsort(importances)[::-1]
 
-    # Calculate feature importances
-    importances = model.feature_importances_
+        # Rearrange feature names so they match the sorted feature importances
+        names = [X_data.columns[i] for i in indices]
 
-    # Sort feature importances in descending order
-    indices = np.argsort(importances)[::-1]
+        # Create plot
+        plt.figure(figsize=(20, 5))
 
-    # Rearrange feature names so they match the sorted feature importances
-    names = [X_data.columns[i] for i in indices]
+        # Create plot title
+        plt.title("Feature Importance")
+        plt.ylabel('Importance')
 
-    # Create plot
-    plt.figure(figsize=(20, 5))
+        # Add bars
+        plt.bar(range(X_data.shape[1]), importances[indices])
 
-    # Create plot title
-    plt.title("Feature Importance")
-    plt.ylabel('Importance')
+        # Add feature names as x-axis labels
+        plt.xticks(range(X_data.shape[1]), names, rotation=90)
 
-    # Add bars
-    plt.bar(range(X.shape[1]), importances[indices])
+        save_or_show(output_path)
+    else:
+        # TODO log
+        print("Estimator does not have feature importances implemented.")
 
-    # Add feature names as x-axis labels
-    plt.xticks(range(X.shape[1]), names, rotation=90)
-
-    # TODO save
-    save_or_show(out_path)
+    # Plot Shapely values if a Shap explainer is provided
+    if shap_explainer:
+        # TODO
+        print("SHAP EXPLAINER WILL BE USED.")
 
 
 def save_or_show(out_fn: str | None) -> None:
