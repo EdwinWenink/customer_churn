@@ -15,7 +15,8 @@ from sklearn.metrics import classification_report
 
 from plotting import (plot_histogram, plot_hist_with_kde,
                       plot_normalized_barplot, plot_correlation_heatmap,
-                      compare_roc_curves, plot_classification_reports)
+                      compare_roc_curves, plot_classification_reports,
+                      feature_importance_plot)
 import constants
 from utils import save_model, load_model, grid_search
 
@@ -170,20 +171,7 @@ def classification_report_image(model_name: str,
     plot_classification_reports(train_report, test_report, model_name, out_fn)
 
 
-# TODO typing
-# TODO move to plotting.py?
-def feature_importance_plot(model, X_data, output_path):
     '''
-    creates and stores the feature importances in pth
-    input:
-            model: model object containing feature_importances_
-            X_data: pandas dataframe of X values
-            output_path: path to store the figure
-
-    output:
-             None
-    '''
-    pass
 
 
 def train_models(X_train, X_test, y_train, y_test):

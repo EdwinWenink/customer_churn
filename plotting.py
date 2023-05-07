@@ -101,6 +101,47 @@ def plot_classification_reports(train_report: str, test_report: str,
     save_or_show(out_fn)
 
 
+# TODO typing
+def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
+                            output_path: str | None) -> None:
+    '''
+    Creates and stores the feature importances in `output_path`
+    Args:
+            model: model object containing feature_importances_
+            X_data: pandas dataframe of X values
+            output_path: path to store the figure
+    '''
+    # TODO assert has feature_importances_?
+
+    # NOTE in notebook *all* data is thrown in here.
+    # Should we not pass train or test separately?
+
+    # Calculate feature importances
+    importances = model.feature_importances_
+
+    # Sort feature importances in descending order
+    indices = np.argsort(importances)[::-1]
+
+    # Rearrange feature names so they match the sorted feature importances
+    names = [X_data.columns[i] for i in indices]
+
+    # Create plot
+    plt.figure(figsize=(20, 5))
+
+    # Create plot title
+    plt.title("Feature Importance")
+    plt.ylabel('Importance')
+
+    # Add bars
+    plt.bar(range(X.shape[1]), importances[indices])
+
+    # Add feature names as x-axis labels
+    plt.xticks(range(X.shape[1]), names, rotation=90)
+
+    # TODO save
+    save_or_show(out_path)
+
+
 def save_or_show(out_fn: str | None) -> None:
     """Save a pyplot figure to an image folder, or show the plot otherwise."""
     if out_fn:
