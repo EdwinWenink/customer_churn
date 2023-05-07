@@ -3,16 +3,17 @@ Generic utilities used in `churn_library.py`.
 """
 
 import joblib
+import logging
 from typing import Any
 
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import GridSearchCV
 
 
-# TODO maybe move logger here? Or `get_logger`
+logging.getLogger(__name__)
 
 
-# TODO what is type of model?
 def save_model(model: Any, save_path: str):
     """
     Save the model object using joblib. If you provide a file extension
@@ -21,15 +22,14 @@ def save_model(model: Any, save_path: str):
     This function overwrites files.
 
     Args:
-        model: python object of the model
+        model: python object of the model.
         save_path: string indicating where to save the model, including file extension.
     """
     try:
         joblib.dump(model, save_path)
     except (FileNotFoundError, KeyError) as err:
-        # TODO log error
-        # logging.error("During model saving the following error occurred: %s", err)
         print(err)
+        logging.error("During model saving the following error occurred: %s", err)
 
 
 def load_model(model_path: str):
@@ -43,13 +43,26 @@ def load_model(model_path: str):
     try:
         return joblib.load(model_path)
     except (FileNotFoundError, KeyError, UnicodeDecodeError, ValueError) as err:
-        # TODO log error
-        # logging.error("During model loading the following error occurred: %s", err)
         print(err)
+        logging.error("During model saving the following error occurred: %s", err)
 
 
-def grid_search(estimator: BaseEstimator, X_train, y_train, param_grid: dict, cv: int | None, **kwargs) -> BaseEstimator:
-    """Perform grid search with cross validation and return the best estimator."""
+def grid_search(estimator: BaseEstimator, X_train: np.ndarray, y_train: np.ndarray,
+                param_grid: dict, cv: int | None, **kwargs) -> BaseEstimator:
+    """
+    Perform grid search with cross validation and return the best estimator.
+
+    Args:
+        estimator: scikit-learn BaseEstimator.
+        X_train: input feature array.
+        y_train: array of target labels.
+        param_grid: parameters with value ranges to do grid search over.
+        cv: the amount of splits in cross-validation.
+
+    Returns:
+        the BaseEstimator with the best cross validation score.
+
+    """
     # Perform hyperparameter search
     grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=5, **kwargs)
     grid.fit(X_train, y_train)
