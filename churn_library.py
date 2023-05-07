@@ -125,7 +125,7 @@ def perform_feature_engineering(df: pd.DataFrame, response: str) ->\
     df = encoder_helper(df, constants.CAT_COLUMNS, response)
 
     # Determine training features `X` and target labels `y`
-    X = feature_selection(df, constants.KEEP_COLUMNS)
+    X = feature_selection(df, constants.SELECT_FEATURES)
     y = df['churn']
 
     # Pick a 70/30 train-test split
