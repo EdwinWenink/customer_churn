@@ -1,5 +1,5 @@
 """
-TODO Module docstring should go here.
+Module for predicting customer churn.
 """
 
 import os
@@ -7,11 +7,17 @@ from typing import List, Tuple
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
 
 from plotting import (plot_histogram, plot_hist_with_kde,
-                      plot_normalized_barplot, plot_correlation_heatmap)
+                      plot_normalized_barplot, plot_correlation_heatmap,
+                      plot_roc_curve, plot_classification_reports)
 import constants
+from utils import save_model, load_model, grid_search
 
 # Needed by Udacity platform
 os.environ['QT_QPA_PLATFORM'] = 'offscreen'
@@ -120,8 +126,6 @@ def perform_feature_engineering(df: pd.DataFrame, response: str) ->\
               y_train: y training data
               y_test: y testing data
     '''
-
-    #
     df = encoder_helper(df, constants.CAT_COLUMNS, response)
 
     # Determine training features `X` and target labels `y`
@@ -139,37 +143,42 @@ def feature_selection(df: pd.DataFrame, keep_columns: List[str]) -> pd.DataFrame
     return df[keep_columns]
 
 
-# TODO typing
-def classification_report_image(y_train,
-                                y_test,
-                                y_train_preds_lr,
-                                y_train_preds_rf,
-                                y_test_preds_lr,
-                                y_test_preds_rf) -> None:
+def classification_report_image(model_name: str,
+                                y_train: np.ndarray,
+                                y_test: np.ndarray,
+                                y_train_preds: np.ndarray,
+                                y_test_preds: np.ndarray,
+                                ) -> None:
     '''
-    produces classification report for training and testing results and stores report as image
-    in images folder
-    input:
+    Produces classification report for training and testing results and stores report as image
+    in images folder.
+
+    Args:
+            model_name: model name that will be used in the report subtitles
             y_train: training response values
             y_test:  test response values
-            y_train_preds_lr: training predictions from logistic regression
-            y_train_preds_rf: training predictions from random forest
-            y_test_preds_lr: test predictions from logistic regression
-            y_test_preds_rf: test predictions from random forest
+            y_train_preds: training predictions from random forest
+            y_test_preds: test predictions from random forest
 
-    output:
-             None
     '''
-    pass
+
+    train_report = classification_report(y_train, y_train_preds, output_dict=False)
+    test_report = classification_report(y_test, y_test_preds, output_dict=False)
+
+    # TODO where to define?
+    out_fn = f"results/{model_name}_results.png"
+    plot_classification_reports(train_report, test_report, model_name, out_fn)
 
 
-def feature_importance_plot(model, X_data, output_pth):
+# TODO typing
+# TODO move to plotting.py?
+def feature_importance_plot(model, X_data, output_path):
     '''
     creates and stores the feature importances in pth
     input:
             model: model object containing feature_importances_
             X_data: pandas dataframe of X values
-            output_pth: path to store the figure
+            output_path: path to store the figure
 
     output:
              None
@@ -188,8 +197,43 @@ def train_models(X_train, X_test, y_train, y_test):
     output:
               None
     '''
-    pass
 
+    # TODO refactor to work for both models?
+    # TODO make a model class; ChurnClassifier? inherit from "ClassifierMixin";
+    # Use a different solver if the default 'lbfgs' fails to converge
+    # Reference: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+    # NOTE for now only Logistic Regression
+    # TODO how to read in params
+    model = LogisticRegression(solver='lbfgs', max_iter=3000)
+
+    # TODO hyper param search; define elsewhere
+    GRID_SEARCH = False
+    param_grid = {
+        'n_estimators': [200, 500],
+        'max_features': ['auto', 'sqrt'],
+        'max_depth': [4, 5, 100],
+        'criterion': ['gini', 'entropy']
+    }
+
+    if GRID_SEARCH:
+        model = grid_search(model, X_train, y_train, param_grid, cv=5)
+    else:
+        # Train model without grid search
+        model.fit(X_train, y_train)
+
+    # Serialize trained model
+    # TODO Make model class?; use model.name
+    save_model(model, constants.MODEL_DIR / 'model.pkl')
+
+    # Store model results
+    '''
+    y_train_preds_lr = None
+    y_train_preds_rf = None
+    y_test_preds_lr = None
+    y_test_preds_rf = None
+    classification_report_image(y_train, y_test, y_train_preds_lr, y_train_preds_rf,
+                                y_test_preds_lr, y_test_preds_rf)
+    '''
 
     # Compute and store feature importances
     feature_importance_plot(model = None, X_data=None, output_path=None)
