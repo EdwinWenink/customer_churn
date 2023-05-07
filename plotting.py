@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
+from sklearn.base import BaseEstimator
 
 from constants import IMG_DIR, DEFAULT_FIG_SIZE
 
@@ -64,6 +65,23 @@ def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
     fig = plt.figure(figsize=figsize)
     sns.heatmap(df.corr(numeric_only=True), annot=False,
                 cmap='Dark2_r', linewidths=2)
+    save_or_show(out_fn)
+
+
+def plot_roc_curve():
+    pass
+
+
+def plot_classification_reports(train_report: str, test_report: str, model_name: str, out_fn) -> None:
+    """Save or show a classification report on train and test sets in text format. """
+    font_dict = {'fontsize': 10}
+    font_properties = 'monospace'  # approach improved by OP -> monospace!
+    plt.rc('figure', figsize=(5, 5))
+    plt.text(0.01, 1.25, f'{model_name} Train', font_dict, font_properties)
+    plt.text(0.01, 0.05, str(train_report), font_dict, font_properties)
+    plt.text(0.01, 0.6, f'{model_name} Test', font_dict, font_properties)
+    plt.text(0.01, 0.7, str(test_report), font_dict, font_properties)
+    plt.axis('off')
     save_or_show(out_fn)
 
 
