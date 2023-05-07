@@ -15,12 +15,12 @@ from sklearn.metrics import classification_report
 
 from plotting import (plot_histogram, plot_hist_with_kde,
                       plot_normalized_barplot, plot_correlation_heatmap,
-                      plot_roc_curve, plot_classification_reports)
+                      compare_roc_curves, plot_classification_reports)
 import constants
 from utils import save_model, load_model, grid_search
 
-# Needed by Udacity platform
-os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+# Only needed by Udacity platform
+# os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
 
 def import_data(path: str) -> pd.DataFrame:
@@ -234,9 +234,20 @@ def train_models(X_train, X_test, y_train, y_test):
     classification_report_image(y_train, y_test, y_train_preds_lr, y_train_preds_rf,
                                 y_test_preds_lr, y_test_preds_rf)
     '''
+    y_train_preds = model.predict(X_train)
+    y_test_preds = model.predict(X_test)
+
+    # TODO extend with all models
+    # TODO hangs.. "This plugin does not support raise()"
+    compare_roc_curves([model], X_test, y_test)
+
+    # TODO get model name from elsewhere
+    model_name = 'Test'
+    classification_report_image(model_name, y_train, y_test,
+                                y_train_preds, y_test_preds)
 
     # Compute and store feature importances
-    feature_importance_plot(model = None, X_data=None, output_path=None)
+    feature_importance_plot(model=model, X_data=None, output_path=None)
 
 
 def main() -> None:
@@ -244,7 +255,6 @@ def main() -> None:
     df = import_data(INPUT_PATH)
     perform_eda(df)
 
-    # TODO what does response do? Does this make sense?
     response = constants.RESPONSE
     X_train, X_test, y_train, y_test = perform_feature_engineering(df, response)
     print(X_train.head())

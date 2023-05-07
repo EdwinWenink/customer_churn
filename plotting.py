@@ -2,11 +2,14 @@
 Utility module containing plotting functions.
 """
 
+from typing import List
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
 from sklearn.base import BaseEstimator
+from sklearn.metrics import RocCurveDisplay
 
 from constants import IMG_DIR, DEFAULT_FIG_SIZE
 
@@ -68,19 +71,32 @@ def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
     save_or_show(out_fn)
 
 
-def plot_roc_curve():
-    pass
+def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
+                       y_test: np.ndarray, figsize=DEFAULT_FIG_SIZE,
+                       out_fn: str | None = None) -> None:
+    # TODO module docstring; only appropriate for binary classifier
+    # TODO plot_roc_curve deprecated
+    # Use: RocCurveDisplay.from_predictions or ..from_estimator()
+    plt.figure(figsize=figsize)
+    ax = plt.gca()
+    for estimator in estimators:
+        # plot_roc_curve(estimator, X_test, y_test, ax=ax, alpha=0.8)
+        display = RocCurveDisplay.from_estimator(estimator, X_test, y_test,
+                                                 ax=ax, alpha=0.8)
+        display.plot()
+    save_or_show(out_fn)
 
 
-def plot_classification_reports(train_report: str, test_report: str, model_name: str, out_fn) -> None:
+def plot_classification_reports(train_report: str, test_report: str,
+                                model_name: str, out_fn: str) -> None:
     """Save or show a classification report on train and test sets in text format. """
     font_dict = {'fontsize': 10}
     font_properties = 'monospace'  # approach improved by OP -> monospace!
     plt.rc('figure', figsize=(5, 5))
-    plt.text(0.01, 1.25, f'{model_name} Train', font_dict, font_properties)
-    plt.text(0.01, 0.05, str(train_report), font_dict, font_properties)
-    plt.text(0.01, 0.6, f'{model_name} Test', font_dict, font_properties)
-    plt.text(0.01, 0.7, str(test_report), font_dict, font_properties)
+    plt.text(0.01, 1.25, f'{model_name} Train', font_dict, font_properties=font_properties)
+    plt.text(0.01, 0.05, str(train_report), font_dict, font_properties=font_properties)
+    plt.text(0.01, 0.6, f'{model_name} Test', font_dict, font_properties=font_properties)
+    plt.text(0.01, 0.7, str(test_report), font_dict, font_properties=font_properties)
     plt.axis('off')
     save_or_show(out_fn)
 
