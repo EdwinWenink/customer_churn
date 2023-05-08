@@ -1,5 +1,8 @@
 from pathlib import Path
 
+# Also stream logging to stdout in addition to the log file
+VERBOSE = True
+
 CAT_COLUMNS = [
     'gender',
     'education_level',

@@ -36,9 +36,14 @@ logging.basicConfig(
     filename='./logs/churn_library.log',
     level=logging.INFO,
     filemode='w',
-    format='%(name)s - %(levelname)s - %(message)s')
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+# Get logger.
 logger = logging.getLogger(__name__)
+
+# If constants.VERBOSE, also define a stream handler to print to stdout
+if constants.VERBOSE:
+    logger.addHandler(logging.StreamHandler())
 
 
 def import_data(path: str) -> pd.DataFrame:
@@ -237,9 +242,9 @@ def train_models(models: List[ChurnClassifier],
     compare_roc_curves([model._estimator for model in models], X_test, y_test)
 
 
-def main() -> None:
-    INPUT_PATH = r"./data/bank_data.csv"
-    df = import_data(INPUT_PATH)
+def main(input_path: str) -> None:
+    # Import data and perform EDA
+    df = import_data(input_path)
     perform_eda(df)
 
     # Perform feature engineering and split into train and test set
@@ -277,4 +282,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    input_path = r"./data/bank_data.csv"
+    main(input_path)
