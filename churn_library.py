@@ -22,7 +22,7 @@ from plotting import (plot_histogram, plot_hist_with_kde,
                       compare_roc_curves, plot_classification_reports,
                       feature_importance_plot)
 import constants
-from models import ChurnModel
+from models import ChurnClassifier
 from utils import save_model
 
 # SHAP throws numba deprecation warnings; suppress until fix is available.
@@ -182,7 +182,7 @@ def classification_report_image(model_name: str,
     plot_classification_reports(train_report, test_report, model_name, out_fn)
 
 
-def train_models(models: List[ChurnModel], X_train, X_test, y_train, y_test) -> None:
+def train_models(models: List[ChurnClassifier], X_train, X_test, y_train, y_test) -> None:
     '''
     Train models and compare their results. The models are persisted to disk.
     Model results are saved as images.
@@ -228,9 +228,10 @@ def main() -> None:
     # Define a Logistic Regression Model
     # Use a different solver if the default 'lbfgs' fails to converge
     # Reference: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
-    lrc = ChurnModel(
+    lrc = ChurnClassifier(
         estimator=LogisticRegression(solver='lbfgs', max_iter=3000),
-        shap_explainer=shap.LinearExplainer
+        shap_explainer=shap.LinearExplainer,
+        shap_masker=shap.maskers.Partition(X_train, max_samples=10000)
     )
 
     # Define a Random Forest classifier + Grid Search hyperparameter tuning
@@ -243,15 +244,16 @@ def main() -> None:
         'criterion': ['gini', 'entropy']
     }
 
-    rfc = ChurnModel(
+    rfc = ChurnClassifier(
         estimator=RandomForestClassifier(random_state=42),
         param_grid=rfc_param_grid,
         cv=5,
-        shap_explainer=shap.TreeExplainer
+        shap_explainer=shap.TreeExplainer  # works without passing masker
     )
 
     # Train and evaluate all defined models
-    models = [lrc, rfc]
+    # models = [lrc, rfc]
+    models = [rfc, lrc]
     train_models(models, X_train, X_test, y_train, y_test)
 
 

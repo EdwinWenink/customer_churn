@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
+import shap
 from sklearn.base import BaseEstimator
 from sklearn.metrics import RocCurveDisplay
 from shap import Explainer
@@ -20,9 +21,6 @@ import warnings
 
 from constants import IMG_DIR, DEFAULT_FIG_SIZE
 
-warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
-warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
-
 # Apply seaborn styling globally
 sns.set()
 
@@ -30,7 +28,7 @@ sns.set()
 warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
 warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
-logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | None = None,
@@ -127,9 +125,21 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
             X_data: pandas dataframe of X values
             output_path: path to store the figure
     '''
+    model_name = type(model).__name__
+
+    # Plot Shapely values if a Shap explainer is provided
+    if shap_explainer:
+        try:
+            assert isinstance(shap_explainer, shap.Explainer), "Explainer needs to be initialized."
+        except AssertionError:
+            logger.error("Shap explainer is not initialized yet.")
+            return
+        shap_values = shap_explainer.shap_values(X=X_data)
+        shap.summary_plot(shap_values, X_data, plot_type="bar")
+
     # If the model has a native feature method for computing
     # feature importances, use that.
-    if hasattr(model, "feature_importances_"):
+    elif hasattr(model, "feature_importances_"):
         # Calculate feature importances
         importances = model.feature_importances_
 
@@ -154,13 +164,13 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
 
         save_or_show(output_path)
     else:
-        # TODO log
-        print("Estimator does not have feature importances implemented.")
+        # TODO why does this not show up?
+        logger.info("Estimator %s does not have `feature_importances_` implemented "
+                    "and no Shap Explainer was provided.", model_name)
+        print(f"Estimator {model_name} does not have `feature_importances_` implemented.")
 
-    # Plot Shapely values if a Shap explainer is provided
-    if shap_explainer:
-        # TODO
-        print("SHAP EXPLAINER WILL BE USED.")
+    # Save or show feature importance plot
+    save_or_show(output_path)
 
 
 def save_or_show(out_fn: str | None) -> None:
