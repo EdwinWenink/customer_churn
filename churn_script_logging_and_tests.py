@@ -1,34 +1,42 @@
+"""
+Module for testing and logging `churn_library.py`.
+"""
+
 import os
 import logging
-import churn_library_solution as cls
 
-logging.basicConfig(
-    filename='./logs/churn_library.log',
-    level=logging.INFO,
-    filemode='w',
-    format='%(name)s - %(levelname)s - %(message)s')
+import pytest
 
 
-def test_import(import_data):
+logger = logging.getLogger(__name__)
+# logger.addHandler(logging.FileHandler('./logs/test_churn_library.log'))
+
+
+def test_import(import_data, valid_input_path):
     '''
     test data import - this example is completed for you to assist with the other test functions
     '''
     try:
-        df = import_data("./data/bank_data.csv")
-        logging.info("Testing import_data: SUCCESS")
+        pytest.df = import_data(valid_input_path)
+        logger.info("Data successfully imported from %s", valid_input_path)
     except FileNotFoundError as err:
-        logging.error("Testing import_eda: The file wasn't found")
+        logger.error("Testing import_eda: The file %s wasn't found", valid_input_path)
         raise err
 
     try:
-        assert df.shape[0] > 0
-        assert df.shape[1] > 0
+        assert pytest.df.shape[0] > 0
+        assert pytest.df.shape[1] > 0
     except AssertionError as err:
-        logging.error(
+        logger.error(
             "Testing import_data: The file doesn't appear to have rows and columns")
         raise err
 
 
+def test_import_invalid_input(import_data, invalid_input_path):
+    with pytest.raises(FileNotFoundError):
+        import_data(invalid_input_path)
+
+"""
 def test_eda(perform_eda):
     '''
     test perform eda function
@@ -55,3 +63,4 @@ def test_train_models(train_models):
 
 if __name__ == "__main__":
     pass
+"""
