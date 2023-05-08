@@ -91,13 +91,13 @@ def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
     # TODO module docstring; only appropriate for probabilistic binary classifier with predict_proba
     # TODO plot_roc_curve deprecated
     # Use: RocCurveDisplay.from_predictions or ..from_estimator()
+    logger.info("Plotting ROC curve comparison for binary classifiers.")
     plt.figure(figsize=figsize)
     ax = plt.gca()
     for estimator in estimators:
-        # plot_roc_curve(estimator, X_test, y_test, ax=ax, alpha=0.8)
         display = RocCurveDisplay.from_estimator(estimator, X_test, y_test,
                                                  ax=ax, alpha=0.8)
-        display.plot()
+        # display.plot()
     save_or_show(out_fn)
 
 
@@ -134,12 +134,17 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
         except AssertionError:
             logger.error("Shap explainer is not initialized yet.")
             return
+
+        logger.info("Generating feature importance plot for %s "
+                    "with Shapley values", model_name)
         shap_values = shap_explainer.shap_values(X=X_data)
         shap.summary_plot(shap_values, X_data, plot_type="bar")
 
     # If the model has a native feature method for computing
     # feature importances, use that.
     elif hasattr(model, "feature_importances_"):
+        logger.info("Generating feature importance plot for %s "
+                    "using sklearn `feature_importances_", model_name)
         # Calculate feature importances
         importances = model.feature_importances_
 
@@ -164,10 +169,8 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
 
         save_or_show(output_path)
     else:
-        # TODO why does this not show up?
-        logger.info("Estimator %s does not have `feature_importances_` implemented "
-                    "and no Shap Explainer was provided.", model_name)
-        print(f"Estimator {model_name} does not have `feature_importances_` implemented.")
+        logger.warning("Estimator %s does not have `feature_importances_` implemented "
+                       "and no Shap Explainer was provided.", model_name)
 
     # Save or show feature importance plot
     save_or_show(output_path)
@@ -176,7 +179,9 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
 def save_or_show(out_fn: str | None) -> None:
     """Save a pyplot figure to an image folder, or show the plot otherwise."""
     if out_fn:
-        plt.savefig(IMG_DIR / out_fn)
+        out_path = IMG_DIR / out_fn
+        logger.info("Saving figure at %s", out_path)
+        plt.savefig(out_path)
     else:
         plt.show()
     cleanup()

@@ -22,8 +22,7 @@ from plotting import (plot_histogram, plot_hist_with_kde,
                       compare_roc_curves, plot_classification_reports,
                       feature_importance_plot)
 import constants
-from models import ChurnClassifier
-from utils import save_model
+from models import ChurnClassifier, save_model
 
 # SHAP throws numba deprecation warnings; suppress until fix is available.
 warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
@@ -33,7 +32,13 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 # import os
 # os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 
-logging.getLogger(__name__)
+logging.basicConfig(
+    filename='./logs/churn_library.log',
+    level=logging.INFO,
+    filemode='w',
+    format='%(name)s - %(levelname)s - %(message)s')
+
+logger = logging.getLogger(__name__)
 
 
 def import_data(path: str) -> pd.DataFrame:
@@ -46,6 +51,7 @@ def import_data(path: str) -> pd.DataFrame:
     Returns:
         df: pandas dataframe
     """
+    logger.info("Reading data from path %s", path)
     df = pd.read_csv(path)
     df = preprocess_data(df)
     return df
@@ -62,6 +68,8 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
         df: dataframe with lower case column names, unneeded columns dropped,
             and a `churn` column, the target variable in this project.
     """
+    logger.info("Preprocessing dataframe.")
+
     # The unnamed column is a duplicate of the index
     df.drop('Unnamed: 0', axis=1, inplace=True)
 
@@ -82,9 +90,9 @@ def perform_eda(df: pd.DataFrame) -> None:
         df: pandas dataframe
     '''
     # General statistics
-    print("Data shape:", df.shape)
-    print("Null values per columns:\n", df.isnull().sum())
-    print(df.describe())
+    logger.info("Data shape: %s", df.shape)
+    logger.info("Null values per columns:\n%s", df.isnull().sum())
+    logger.info(df.describe())
 
     # EDA plots
     plot_histogram(df['churn'], bins=np.arange(df['churn'].min()-.1, df['churn'].max()+.1, .1),
@@ -118,6 +126,7 @@ def encoder_helper(df: pd.DataFrame, cat_columns: List[str],
     Returns:
             df: pandas dataframe with the new columns
     '''
+    logger.info("Encoding categorical columns %s", cat_columns)
     for cat_col in cat_columns:
         mean_churn_per_group = df.groupby(cat_col).mean(numeric_only=True)[response]
         df[f"{cat_col}_{response}"] = df[cat_col].map(mean_churn_per_group)
@@ -146,13 +155,19 @@ def perform_feature_engineering(df: pd.DataFrame, response: str) ->\
     y = df['churn']
 
     # Pick a 70/30 train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    test_size = 0.3
+    random_state = 42
+    logger.info("Train-test split with test proportion %s (random state = %s)",
+                test_size, random_state)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size,
+                                                        random_state=random_state)
 
     return X_train, X_test, y_train, y_test
 
 
 def feature_selection(df: pd.DataFrame, keep_columns: List[str]) -> pd.DataFrame:
     """Utility function for feature selection"""
+    logger.info("Selecting features: %s", keep_columns)
     return df[keep_columns]
 
 
@@ -178,11 +193,14 @@ def classification_report_image(model_name: str,
     train_report = classification_report(y_train, y_train_preds, output_dict=False)
     test_report = classification_report(y_test, y_test_preds, output_dict=False)
 
+    logger.info("Generating classification report on train and test set.")
     out_fn = f"results/{model_name}_results.png"
     plot_classification_reports(train_report, test_report, model_name, out_fn)
 
 
-def train_models(models: List[ChurnClassifier], X_train, X_test, y_train, y_test) -> None:
+def train_models(models: List[ChurnClassifier],
+                 X_train: pd.DataFrame, X_test: pd.DataFrame,
+                 y_train: pd.DataFrame, y_test: pd.DataFrame) -> None:
     '''
     Train models and compare their results. The models are persisted to disk.
     Model results are saved as images.
@@ -194,6 +212,8 @@ def train_models(models: List[ChurnClassifier], X_train, X_test, y_train, y_test
         y_train: y training data
         y_test: y testing data
     '''
+
+    logger.info("Start training loop for models: %s", [model.name for model in models])
 
     for model in models:
 
@@ -222,8 +242,8 @@ def main() -> None:
     df = import_data(INPUT_PATH)
     perform_eda(df)
 
+    # Perform feature engineering and split into train and test set
     X_train, X_test, y_train, y_test = perform_feature_engineering(df, constants.RESPONSE)
-    print(X_train.head())
 
     # Define a Logistic Regression Model
     # Use a different solver if the default 'lbfgs' fails to converge
@@ -252,8 +272,7 @@ def main() -> None:
     )
 
     # Train and evaluate all defined models
-    # models = [lrc, rfc]
-    models = [rfc, lrc]
+    models = [lrc, rfc]
     train_models(models, X_train, X_test, y_train, y_test)
 
 
