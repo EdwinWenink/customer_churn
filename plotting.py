@@ -97,7 +97,6 @@ def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
     for estimator in estimators:
         display = RocCurveDisplay.from_estimator(estimator, X_test, y_test,
                                                  ax=ax, alpha=0.8)
-        # display.plot()
     save_or_show(out_fn)
 
 
@@ -189,5 +188,6 @@ def save_or_show(out_fn: str | None) -> None:
 
 def cleanup() -> None:
     """Clean up pyplot figures."""
-    plt.cla()
     plt.clf()
+    # plt.cla()
+    plt.close()

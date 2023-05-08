@@ -265,7 +265,7 @@ def main(input_path: str) -> None:
         'n_estimators': [10, 20],
         'max_features': ['sqrt'],
         # 'max_depth': [4, 5, 100],
-        'max_depth': [4, 5],
+        'max_depth': [4, 5, 50],
         'criterion': ['gini', 'entropy']
     }
 
