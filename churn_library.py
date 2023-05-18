@@ -6,6 +6,7 @@ import os
 import warnings
 import logging
 from typing import List, Tuple
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -146,7 +147,7 @@ def encoder_helper(df: pd.DataFrame, cat_columns: List[str],
 
 
 def perform_feature_engineering(df: pd.DataFrame, response: str) ->\
-      Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+      Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     '''
     input:
               df: pandas dataframe
@@ -183,8 +184,8 @@ def feature_selection(df: pd.DataFrame, keep_columns: List[str]) -> pd.DataFrame
 
 
 def classification_report_image(model_name: str,
-                                y_train: np.ndarray,
-                                y_test: np.ndarray,
+                                y_train: pd.Series | np.ndarray,
+                                y_test: pd.Series | np.ndarray,
                                 y_train_preds: np.ndarray,
                                 y_test_preds: np.ndarray,
                                 out_dir: str = 'images/results/'
@@ -214,7 +215,9 @@ def classification_report_image(model_name: str,
 
 def train_models(models: List[ChurnClassifier],
                  X_train: pd.DataFrame, X_test: pd.DataFrame,
-                 y_train: pd.DataFrame, y_test: pd.DataFrame) -> None:
+                 y_train: pd.Series, y_test: pd.Series,
+                 model_dir: Path = constants.MODEL_DIR,
+                 img_dir: Path = constants.IMG_DIR) -> None:
     '''
     Train models and compare their results. The models are persisted to disk.
     Model results are saved as images.
@@ -227,13 +230,15 @@ def train_models(models: List[ChurnClassifier],
         y_test: y testing data
     '''
 
-    logger.info("Start training loop for models: %s", [model.name for model in models])
+    model_names = [model.name for model in models]
+    logger.info("Start training loop for models: %s", model_names)
+    os.makedirs(model_dir, exist_ok=True)
 
     for model in models:
 
         # Train and serialize trained model
         model.train(X_train, y_train)
-        save_model(model, constants.MODEL_DIR / f'{model.name}.pkl')
+        save_model(model, model_dir / f'{model.name}.pkl')
 
         # Store model results
         y_train_preds = model.predict(X_train)
@@ -241,14 +246,17 @@ def train_models(models: List[ChurnClassifier],
 
         # Generate a classification report on train and test set
         classification_report_image(model.name, y_train, y_test,
-                                    y_train_preds, y_test_preds)
+                                    y_train_preds, y_test_preds,
+                                    out_dir=f"{img_dir}/results/")
 
         # Compute and store feature importances
         feature_importance_plot(model=model._estimator, X_data=X_test,
-                                output_path=None, shap_explainer=model.shap_explainer)
+                                output_dir=f"{img_dir}/results/",
+                                shap_explainer=model.shap_explainer)
 
     # Plot ROC curves of both models in the same plot
-    compare_roc_curves([model._estimator for model in models], X_test, y_test)
+    compare_roc_curves([model._estimator for model in models], X_test, y_test,
+                       out_path=f"{img_dir}/results/ROC_{'_'.join(model_names)}.png")
 
 
 def main(input_path: str) -> None:
@@ -264,6 +272,7 @@ def main(input_path: str) -> None:
     # Reference: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
     lrc = ChurnClassifier(
         estimator=LogisticRegression(solver='lbfgs', max_iter=3000),
+        # LinearExplainer does not seem to work ideally here
         shap_explainer=shap.LinearExplainer,
         shap_masker=shap.maskers.Partition(X_train, max_samples=10000)
     )

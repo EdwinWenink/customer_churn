@@ -1,12 +1,10 @@
 """
 Utility module containing plotting functions.
-
-TODO FIX: many empty plots are generated.
-TODO FIX: classification report title seems to fall off screen.
 """
 
-from typing import List
+import os
 import logging
+from typing import List
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -85,8 +83,8 @@ def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
     save_or_show(out_path)
 
 
-def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
-                       y_test: np.ndarray, figsize=DEFAULT_FIG_SIZE,
+def compare_roc_curves(estimators: List[BaseEstimator], X_test: pd.DataFrame | np.ndarray,
+                       y_test: pd.Series | np.ndarray, figsize=DEFAULT_FIG_SIZE,
                        out_path: str | None = None) -> None:
     # TODO module docstring; only appropriate for probabilistic binary classifier with predict_proba
     # TODO plot_roc_curve deprecated
@@ -117,15 +115,23 @@ def plot_classification_reports(train_report: str, test_report: str,
 
 def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
                             shap_explainer: Explainer | None = None,
-                            output_path: str | None = None) -> None:
+                            output_dir: str | None = None) -> None:
     '''
     Creates and stores the feature importances in `output_path`
+    If a shap explainer is provided shap will be used to generate
+    a feature importance plot. If the provided estimator has a
+    native implementation to compute feature importances, this
+    method is also used. If neither are available, a warning is logged.
+
     Args:
             model: model object containing feature_importances_
             X_data: pandas dataframe of X values
-            output_path: path to store the figure
+            output_dir: path to directory for storing the figures
     '''
     model_name = type(model).__name__
+    success = False
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
 
     # Plot Shapely values if a Shap explainer is provided
     if shap_explainer:
@@ -138,11 +144,13 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
         logger.info("Generating feature importance plot for %s "
                     "with Shapley values", model_name)
         shap_values = shap_explainer.shap_values(X=X_data)
-        shap.summary_plot(shap_values, X_data, plot_type="bar")
+        shap.summary_plot(shap_values, X_data, plot_type="bar", show=False)
+        save_or_show(f"{output_dir}/{model_name}_shap_feature_importances.png")
+        success = True
 
     # If the model has a native feature method for computing
     # feature importances, use that.
-    elif hasattr(model, "feature_importances_"):
+    if hasattr(model, "feature_importances_"):
         logger.info("Generating feature importance plot for %s "
                     "using sklearn `feature_importances_", model_name)
         # Calculate feature importances
@@ -167,13 +175,12 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
         # Add feature names as x-axis labels
         plt.xticks(range(X_data.shape[1]), names, rotation=90)
 
-        save_or_show(output_path)
-    else:
+        save_or_show(f"{output_dir}/{model_name}_feature_importances.png")
+        success = True
+
+    if not success:
         logger.warning("Estimator %s does not have `feature_importances_` implemented "
                        "and no Shap Explainer was provided.", model_name)
-
-    # Save or show feature importance plot
-    save_or_show(output_path)
 
 
 def save_or_show(out_path: str | None) -> None:
@@ -189,5 +196,4 @@ def save_or_show(out_path: str | None) -> None:
 def cleanup() -> None:
     """Clean up pyplot figures."""
     plt.clf()
-    # plt.cla()
     plt.close()
