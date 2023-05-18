@@ -87,12 +87,13 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def perform_eda(df: pd.DataFrame) -> None:
+def perform_eda(df: pd.DataFrame, out_dir: str = 'images/eda/') -> None:
     '''
     Perform EDA on `df` and save figures to images folder.
 
     Args:
         df: pandas dataframe
+        out_dir: directory where to store EDA plots
     '''
     # General statistics
     logger.info("Data shape: %s", df.shape)
@@ -102,18 +103,18 @@ def perform_eda(df: pd.DataFrame) -> None:
     # EDA plots
     plot_histogram(df['churn'], bins=np.arange(df['churn'].min()-.1, df['churn'].max()+.1, .1),
                    align='left', xlabel='Value', ylabel='Counts',
-                   out_fn=f"eda/{df['churn'].name}_distribution.png")
+                   out_path=f"{out_dir}/{df['churn'].name}_distribution.png")
 
     plot_histogram(df['customer_age'], xlabel='Value', ylabel='Counts',
-                   out_fn=f"eda/{df['customer_age'].name}_distribution.png")
+                   out_path=f"{out_dir}/{df['customer_age'].name}_distribution.png")
 
     plot_normalized_barplot(df['marital_status'],
-                            out_fn=f"eda/{df['marital_status'].name}_distribution.png")
+                            out_path=f"{out_dir}/{df['marital_status'].name}_distribution.png")
 
     plot_hist_with_kde(df['total_trans_ct'],
-                       out_fn=f"eda/{df['total_trans_ct'].name}_distribution.png")
+                       out_path=f"{out_dir}/{df['total_trans_ct'].name}_distribution.png")
 
-    plot_correlation_heatmap(df, out_fn=f"eda/heatmap.png")
+    plot_correlation_heatmap(df, out_path=f"{out_dir}/heatmap.png")
 
 
 def encoder_helper(df: pd.DataFrame, cat_columns: List[str],

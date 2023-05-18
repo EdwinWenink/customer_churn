@@ -31,7 +31,7 @@ warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 logger = logging.getLogger(__name__)
 
 
-def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | None = None,
+def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | None = None,
                    *args, **kwargs) -> None:
     """Utility function to plot a histogram of a pandas series."""
     fig = plt.figure(figsize=figsize)
@@ -43,13 +43,13 @@ def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | None
         plt.ylabel(kwargs.pop('ylabel'))
 
     plt.hist(data, **kwargs)
-    save_or_show(out_fn)
+    save_or_show(out_path)
 
 
-def plot_normalized_barplot(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | None = None,
+def plot_normalized_barplot(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | None = None,
                             *args, **kwargs) -> None:
     """Utility function to plot a bar plot using normalization."""
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
     data.value_counts(normalize=True).plot(kind='bar')
     plt.title(f"Distribution of {str(data.name).replace('_', ' ')}")
 
@@ -59,13 +59,13 @@ def plot_normalized_barplot(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: s
         plt.ylabel(kwargs.pop('ylabel'))
 
     plt.hist(data, **kwargs)
-    save_or_show(out_fn)
+    save_or_show(out_path)
 
 
-def plot_hist_with_kde(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | None = None,
+def plot_hist_with_kde(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | None = None,
                        *args, **kwargs) -> None:
     """Plot a histogram with kernel density estimation."""
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
 
     if 'xlabel' in kwargs.keys():
         plt.xlabel(kwargs.pop('xlabel'))
@@ -73,21 +73,21 @@ def plot_hist_with_kde(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_fn: str | 
         plt.ylabel(kwargs.pop('ylabel'))
 
     sns.histplot(data, stat='density', kde=True)
-    save_or_show(out_fn)
+    save_or_show(out_path)
 
 
 def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
-                             out_fn: str | None = None, *args, **kwargs) -> None:
+                             out_path: str | None = None, *args, **kwargs) -> None:
     """Plot a heatmap showing pairwise correlation between all variables."""
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
     sns.heatmap(df.corr(numeric_only=True), annot=False,
                 cmap='Dark2_r', linewidths=2)
-    save_or_show(out_fn)
+    save_or_show(out_path)
 
 
 def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
                        y_test: np.ndarray, figsize=DEFAULT_FIG_SIZE,
-                       out_fn: str | None = None) -> None:
+                       out_path: str | None = None) -> None:
     # TODO module docstring; only appropriate for probabilistic binary classifier with predict_proba
     # TODO plot_roc_curve deprecated
     # Use: RocCurveDisplay.from_predictions or ..from_estimator()
@@ -97,11 +97,11 @@ def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
     for estimator in estimators:
         display = RocCurveDisplay.from_estimator(estimator, X_test, y_test,
                                                  ax=ax, alpha=0.8)
-    save_or_show(out_fn)
+    save_or_show(out_path)
 
 
 def plot_classification_reports(train_report: str, test_report: str,
-                                model_name: str, out_fn: str | None = None) -> None:
+                                model_name: str, out_path: str | None = None) -> None:
     """Save or show a classification report on train and test sets in text format. """
     font_dict = {'fontsize': 10}
     font_properties = 'monospace'  # approach improved by OP -> monospace!
@@ -111,7 +111,7 @@ def plot_classification_reports(train_report: str, test_report: str,
     plt.text(0.01, 0.6, f'{model_name} Test', font_dict, font_properties=font_properties)
     plt.text(0.01, 0.7, str(test_report), font_dict, font_properties=font_properties)
     plt.axis('off')
-    save_or_show(out_fn)
+    save_or_show(out_path)
 
 
 def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
@@ -175,10 +175,9 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
     save_or_show(output_path)
 
 
-def save_or_show(out_fn: str | None) -> None:
+def save_or_show(out_path: str | None) -> None:
     """Save a pyplot figure to an image folder, or show the plot otherwise."""
-    if out_fn:
-        out_path = IMG_DIR / out_fn
+    if out_path:
         logger.info("Saving figure at %s", out_path)
         plt.savefig(out_path)
     else:
