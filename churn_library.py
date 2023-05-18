@@ -2,6 +2,7 @@
 Module for predicting customer churn.
 """
 
+import os
 import warnings
 import logging
 from typing import List, Tuple
@@ -95,6 +96,10 @@ def perform_eda(df: pd.DataFrame, out_dir: str = 'images/eda/') -> None:
         df: pandas dataframe
         out_dir: directory where to store EDA plots
     '''
+
+    # If out_dir does not exist yet, create it
+    os.makedirs(out_dir, exist_ok=True)
+
     # General statistics
     logger.info("Data shape: %s", df.shape)
     logger.info("Null values per columns:\n%s", df.isnull().sum())
@@ -182,6 +187,7 @@ def classification_report_image(model_name: str,
                                 y_test: np.ndarray,
                                 y_train_preds: np.ndarray,
                                 y_test_preds: np.ndarray,
+                                out_dir: str = 'images/results/'
                                 ) -> None:
     '''
     Produces classification report for training and testing results and stores report as image
@@ -195,13 +201,15 @@ def classification_report_image(model_name: str,
             y_test_preds: test predictions from random forest
 
     '''
+    # Make the output directory if it does not already exist
+    os.makedirs(out_dir, exist_ok=True)
 
     train_report = classification_report(y_train, y_train_preds, output_dict=False)
     test_report = classification_report(y_test, y_test_preds, output_dict=False)
 
     logger.info("Generating classification report on train and test set.")
-    out_fn = f"results/{model_name}_results.png"
-    plot_classification_reports(train_report, test_report, model_name, out_fn)
+    out_path = f"{out_dir}/{model_name}_results.png"
+    plot_classification_reports(train_report, test_report, model_name, out_path)
 
 
 def train_models(models: List[ChurnClassifier],

@@ -102,15 +102,16 @@ def compare_roc_curves(estimators: List[BaseEstimator], X_test: np.ndarray,
 
 def plot_classification_reports(train_report: str, test_report: str,
                                 model_name: str, out_path: str | None = None) -> None:
-    """Save or show a classification report on train and test sets in text format. """
+    """Save or show a classification report on train and test sets in text format."""
     font_dict = {'fontsize': 10}
-    font_properties = 'monospace'  # approach improved by OP -> monospace!
+    font_properties = 'monospace'
     plt.rc('figure', figsize=(5, 5))
     plt.text(0.01, 1.25, f'{model_name} Train', font_dict, font_properties=font_properties)
     plt.text(0.01, 0.05, str(train_report), font_dict, font_properties=font_properties)
     plt.text(0.01, 0.6, f'{model_name} Test', font_dict, font_properties=font_properties)
     plt.text(0.01, 0.7, str(test_report), font_dict, font_properties=font_properties)
     plt.axis('off')
+    plt.tight_layout()
     save_or_show(out_path)
 
 
