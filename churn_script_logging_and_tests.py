@@ -1,5 +1,8 @@
 """
 Module for testing and logging `churn_library.py`.
+
+Author: Edwin Wenink
+Date: May 2023
 """
 
 import os
@@ -13,7 +16,7 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from sklearn.ensemble import RandomForestClassifier
 
-import src.constants as constants
+from src import constants
 from src.models import ChurnClassifier
 
 
@@ -44,6 +47,7 @@ def test_import(import_data, valid_input_path):
 
 
 def test_import_invalid_input(import_data, invalid_input_path):
+    """Test FileNotFoundError is raised on invalid inputs to `import data`."""
     with pytest.raises(FileNotFoundError):
         import_data(invalid_input_path)
         logger.info("Testing whether FileNotFoundError is raised for invalid input.")
@@ -74,6 +78,7 @@ def test_eda(perform_eda):
             logger.info("All EDA outputs were correctly stored.")
         except AssertionError as err:
             logger.error("EDA output is missing at the expected location.")
+            raise err
 
 
 def test_encoder_helper(encoder_helper):
@@ -98,6 +103,7 @@ def test_encoder_helper(encoder_helper):
             logger.info("%s correctly encoded as %s", cat_col, encoded_cat_col)
         except AssertionError as err:
             logger.error("%s not encoded correctly.", cat_col)
+            raise err
 
 
 def test_perform_feature_engineering(perform_feature_engineering):
@@ -215,7 +221,7 @@ def test_train_models(train_models):
 
         # ROC curve comparison
         try:
-            roc_path = temp_dir / f"results/ROC_RandomForestClassifier.png"
+            roc_path = temp_dir / "results/ROC_RandomForestClassifier.png"
             assert os.path.exists(roc_path)
             logger.info("ROC curve found at expected location %s.", roc_path)
         except AssertionError as err:

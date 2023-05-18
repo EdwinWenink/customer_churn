@@ -1,3 +1,10 @@
+"""
+Module defining constants.
+
+Author: Edwin Wenink
+Date: May 2023
+"""
+
 from pathlib import Path
 
 # Also stream logging to stdout in addition to the log file

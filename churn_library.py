@@ -1,5 +1,8 @@
 """
 Module for predicting customer churn.
+
+Author: Edwin Wenink
+Date: May 2023
 """
 
 import os
@@ -9,9 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import shap
-from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -21,7 +22,7 @@ from src.plotting import (plot_histogram, plot_hist_with_kde,
                           plot_normalized_barplot, plot_correlation_heatmap,
                           compare_roc_curves, plot_classification_reports,
                           feature_importance_plot)
-import src.constants as constants
+from src import constants
 from src.models import ChurnClassifier, save_model
 
 # Only needed by Udacity platform
@@ -184,7 +185,7 @@ def classification_report_image(model_name: str,
                                 out_dir: str = 'images/results/'
                                 ) -> None:
     '''
-    Produces classification report for training and testing results and stores report as image
+    Produces a classification report for training and testing results and stores report as image
     in images folder.
 
     Args:
@@ -245,18 +246,24 @@ def train_models(models: List[ChurnClassifier],
                                     out_dir=f"{img_dir}/results/")
 
         # Compute and store feature importances
-        feature_importance_plot(model=model._estimator, X_data=X_test,
+        feature_importance_plot(model=model.estimator, X_data=X_test,
                                 output_dir=f"{img_dir}/results/",
                                 shap_explainer=model.shap_explainer)
 
     # Plot ROC curves of both models in the same plot
-    compare_roc_curves([model._estimator for model in models], X_test, y_test,
+    compare_roc_curves([model.estimator for model in models], X_test, y_test,
                        out_path=f"{img_dir}/results/ROC_{'_'.join(model_names)}.png")
 
 
-def main(input_path: str) -> None:
+def main(data_path: str) -> None:
+    """
+    Given input data, run all pipeline steps to classify customer churn.
+
+    Args:
+        data_path: path to the input data
+    """
     # Import data and perform EDA
-    df = import_data(input_path)
+    df = import_data(data_path)
     perform_eda(df)
 
     # Perform feature engineering and split into train and test set
@@ -283,7 +290,7 @@ def main(input_path: str) -> None:
     rfc = ChurnClassifier(
         estimator=RandomForestClassifier(random_state=42),
         param_grid=rfc_param_grid,
-        cv=5,
+        n_splits=5,
         shap_explainer=shap.TreeExplainer  # works without passing masker
     )
 
@@ -293,5 +300,5 @@ def main(input_path: str) -> None:
 
 
 if __name__ == '__main__':
-    input_path = r"./data/bank_data.csv"
-    main(input_path)
+    INPUT_PATH = r"./data/bank_data.csv"
+    main(INPUT_PATH)

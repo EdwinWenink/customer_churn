@@ -1,5 +1,8 @@
 """
 Utility module containing plotting functions.
+
+Author: Edwin Wenink
+Date: May 2023
 """
 
 import os
@@ -15,7 +18,7 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import RocCurveDisplay
 from shap import Explainer
 
-import src.constants as constants
+from src import constants
 
 # Apply seaborn styling globally
 sns.set()
@@ -25,72 +28,79 @@ if constants.VERBOSE:
     logger.addHandler(logging.StreamHandler())
 
 
-def plot_histogram(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE, out_path: str | None = None,
-                   *args, **kwargs) -> None:
+def plot_histogram(data: pd.Series, *args, figsize=constants.DEFAULT_FIG_SIZE,
+                   out_path: str | None = None, **kwargs) -> None:
     """Utility function to plot a histogram of a pandas series."""
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
     plt.title(f"Distribution of {str(data.name).replace('_', ' ')}")
 
-    if 'xlabel' in kwargs.keys():
+    if 'xlabel' in kwargs:
         plt.xlabel(kwargs.pop('xlabel'))
-    if 'ylabel' in kwargs.keys():
+    if 'ylabel' in kwargs:
         plt.ylabel(kwargs.pop('ylabel'))
 
-    plt.hist(data, **kwargs)
+    plt.hist(data, *args, **kwargs)
     save_or_show(out_path)
 
 
-def plot_normalized_barplot(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE, out_path: str | None = None,
-                            *args, **kwargs) -> None:
+def plot_normalized_barplot(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE,
+                            out_path: str | None = None, **kwargs) -> None:
     """Utility function to plot a bar plot using normalization."""
     plt.figure(figsize=figsize)
     data.value_counts(normalize=True).plot(kind='bar')
     plt.title(f"Distribution of {str(data.name).replace('_', ' ')}")
 
-    if 'xlabel' in kwargs.keys():
+    if 'xlabel' in kwargs:
         plt.xlabel(kwargs.pop('xlabel'))
-    if 'ylabel' in kwargs.keys():
+    if 'ylabel' in kwargs:
         plt.ylabel(kwargs.pop('ylabel'))
 
     plt.hist(data, **kwargs)
     save_or_show(out_path)
 
 
-def plot_hist_with_kde(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE, out_path: str | None = None,
-                       *args, **kwargs) -> None:
+def plot_hist_with_kde(data: pd.Series, *args, figsize=constants.DEFAULT_FIG_SIZE,
+                       out_path: str | None = None, **kwargs) -> None:
     """Plot a histogram with kernel density estimation."""
     plt.figure(figsize=figsize)
 
-    if 'xlabel' in kwargs.keys():
+    if 'xlabel' in kwargs:
         plt.xlabel(kwargs.pop('xlabel'))
-    if 'ylabel' in kwargs.keys():
+    if 'ylabel' in kwargs:
         plt.ylabel(kwargs.pop('ylabel'))
 
-    sns.histplot(data, stat='density', kde=True)
+    sns.histplot(data, stat='density', kde=True, *args, **kwargs)
     save_or_show(out_path)
 
 
-def plot_correlation_heatmap(df: pd.DataFrame, figsize=constants.DEFAULT_FIG_SIZE,
-                             out_path: str | None = None, *args, **kwargs) -> None:
+def plot_correlation_heatmap(df: pd.DataFrame, *args, figsize=constants.DEFAULT_FIG_SIZE,
+                             out_path: str | None = None, **kwargs) -> None:
     """Plot a heatmap showing pairwise correlation between all variables."""
     plt.figure(figsize=figsize)
     sns.heatmap(df.corr(numeric_only=True), annot=False,
-                cmap='Dark2_r', linewidths=2)
+                cmap='Dark2_r', linewidths=2, *args, **kwargs)
     save_or_show(out_path)
 
 
 def compare_roc_curves(estimators: List[BaseEstimator], X_test: pd.DataFrame | np.ndarray,
                        y_test: pd.Series | np.ndarray, figsize=constants.DEFAULT_FIG_SIZE,
                        out_path: str | None = None) -> None:
-    # TODO module docstring; only appropriate for probabilistic binary classifier with predict_proba
-    # TODO plot_roc_curve deprecated
-    # Use: RocCurveDisplay.from_predictions or ..from_estimator()
+    """
+    Plot ROC curves for multiple probabilistic binary classifiers in a single plot.
+
+    Args:
+        estimators: list of sklearn estimators.
+        X_test: test data.
+        y_test: test response vector.
+        figsize: dimensions of the plot.
+        out_path: where to save the plot.
+    """
     logger.info("Plotting ROC curve comparison for binary classifiers.")
     plt.figure(figsize=figsize)
     ax = plt.gca()
     for estimator in estimators:
-        display = RocCurveDisplay.from_estimator(estimator, X_test, y_test,
-                                                 ax=ax, alpha=0.8)
+        # NOTE `plot_roc_curve` is deprecated.
+        RocCurveDisplay.from_estimator(estimator, X_test, y_test, ax=ax, alpha=0.8)
     save_or_show(out_path)
 
 

@@ -1,8 +1,17 @@
+"""
+Module defining `ChurnClassifier`, which is a single interface for all models
+used in `churn_library`. Includes support for grid search and Shap explainers.
+Also defines utilities for saving and loading models and doing grid search.
+
+Author: Edwin Wenink
+Date: May 2023
+"""
+
 import logging
-import joblib
 from typing import Any
 from pathlib import Path
 
+import joblib
 import numpy as np
 import pandas as pd
 from shap import Explainer
@@ -11,7 +20,7 @@ from sklearn.base import BaseEstimator
 from sklearn.utils.validation import check_is_fitted
 from sklearn.model_selection import GridSearchCV
 
-import src.constants as constants
+from src import constants
 
 logger = logging.getLogger(__name__)
 if constants.VERBOSE:
@@ -26,21 +35,21 @@ class ChurnClassifier():
     """
 
     def __init__(self, estimator: BaseEstimator, param_grid: dict | None = None,
-                 cv: int = 5, shap_explainer: Explainer | None = None,
+                 n_splits: int = 5, shap_explainer: Explainer | None = None,
                  shap_masker: Masker | None = None) -> None:
         """
         Args:
             model: sklearn estimator with fit and predict functions
             param_grid: if provided, grid search will be performed using these parameters
-            cv: amount of cross validation splits, if CV is performed.
+            n_splits: amount of cross validation splits, if CV is performed.
             shap_explainer: optionally provide a suitable Shap explainer for this model
-                NOTE that this should be passed as an uninitialized class, because the explainer
+                NOTE should be passed as an uninitialized class, because the explainer
                 can only be instantiated on a model *after* the model is fitted.
             shap_masker: some shap explainers may need an explicit definition of a masker, see docs.
         """
         self._estimator = estimator
         self.param_grid = param_grid
-        self.cv = cv
+        self.n_splits = n_splits
         self._name = type(self._estimator).__name__
         self._shap_explainer = shap_explainer
         self._shap_masker = shap_masker
@@ -55,6 +64,10 @@ class ChurnClassifier():
         """Getter for the used estimator."""
         return self._estimator
 
+    @estimator.setter
+    def estimator(self, estimator: BaseEstimator):
+        self._estimator = estimator
+
     @property
     def shap_explainer(self) -> Explainer | None:
         """Return the defined Shap explainer, if any, and if model is fitted."""
@@ -67,38 +80,48 @@ class ChurnClassifier():
         check_is_fitted(self.estimator)
         return None
 
+    @shap_explainer.setter
+    def shap_explainer(self, explainer: Explainer):
+        """Setter for the shap explainer."""
+        self._shap_explainer = explainer
+
     def train(self, X_train, y_train) -> None:
         """
         Train the chosen estimator. If `param_grid` is defined,
         these parameters will be used for grid search.
         The model with the highest score will be used.
+
+        Args:
+            X_train: input data
+            y_train: target response vector
         """
 
         if self.param_grid:
             # Only perform grid search if search parameters where provided
             # The grid search returns the estimator with the highest CV score
-            self._estimator = grid_search(self._estimator, X_train, y_train,
-                                          self.param_grid, cv=self.cv)
+            self.estimator = grid_search(self._estimator, X_train, y_train,
+                                          self.param_grid, n_splits=self.n_splits)
         else:
             # Train model without grid search
             logger.info("Fitting model.")
-            self._estimator = self._estimator.fit(X_train, y_train)
+            self.estimator = self._estimator.fit(X_train, y_train)
 
         # Once the model is fitted, we can instantiate the shap explainer
         if self._shap_explainer:
             try:
                 # Explainer cannot be None here so mypy warning can be ignored
-                self._shap_explainer = self.shap_explainer(  # type: ignore
-                    self._estimator, masker=self._shap_masker)
+                self.shap_explainer = self._shap_explainer(  # type: ignore
+                    self.estimator, masker=self._shap_masker)
                 logger.info("Initializing Shap explainer after model fitting.")
             except NotImplementedError:
                 logger.error("The provided masker was not valid for the chosen Shap explainer.")
                 # As a fallback, see if there is a default masker for this model and explainer
-                self._shap_explainer = self._shap_explainer(self._estimator, masker=None)
+                self.shap_explainer = self._shap_explainer(self.estimator, masker=None)
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """Given a trained estimator, generate predictions for data X."""
         logger.info("Predicting on data with shape %s", X.shape)
-        preds = self._estimator.predict(X)
+        preds = self.estimator.predict(X)
         preds_distribution = dict(zip(*np.unique(preds, return_counts=True)))  # type: ignore
         logger.info("%s: Distribution of predictions: %s", self.name, preds_distribution)
         return preds
@@ -134,14 +157,15 @@ def load_model(model_path: str | Path) -> Any:
 
     """
     try:
-        return joblib.load(model_path)
+        model = joblib.load(model_path)
     except (FileNotFoundError, KeyError, UnicodeDecodeError, ValueError) as err:
-        print(err)
         logger.error("During model saving the following error occurred: %s", err)
+        raise err
+    return model
 
 
 def grid_search(estimator: BaseEstimator, X_train: np.ndarray, y_train: np.ndarray,
-                param_grid: dict, cv: int | None, **kwargs) -> BaseEstimator:
+                param_grid: dict, n_splits: int | None, **kwargs) -> BaseEstimator:
     """
     Perform grid search with cross validation and return the best estimator.
 
@@ -150,15 +174,16 @@ def grid_search(estimator: BaseEstimator, X_train: np.ndarray, y_train: np.ndarr
         X_train: input feature array.
         y_train: array of target labels.
         param_grid: parameters with value ranges to do grid search over.
-        cv: the amount of splits in cross-validation.
+        n_splits: the amount of splits in cross-validation.
 
     Returns:
         the BaseEstimator with the best cross validation score.
 
     """
     # Perform hyperparameter search
-    logger.info("Fitting model using grid search over parameters\n%s with CV=%s", param_grid, cv)
-    grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=cv, **kwargs)
+    logger.info("Fitting model using grid search over parameters\n"
+                "%s with CV=%s", param_grid, n_splits)
+    grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=n_splits, **kwargs)
     grid.fit(X_train, y_train)
     logger.info("Best parameters during grid search:\n%s", grid.best_params_)
 

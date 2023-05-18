@@ -1,5 +1,8 @@
 """
 Configuration file for pytest.
+
+Author: Edwin Wenink
+Date: May 2023
 """
 
 import logging
@@ -36,14 +39,6 @@ def df_plugin():
 @pytest.fixture
 def valid_input_path():
     return "./data/bank_data.csv"
-
-
-"""
-# You can test more paths with the following syntax
-@pytest.fixture(params=["./data/bank_data.csv", "./data/bank_data_copy.csv"])
-def valid_input_path(request):
-    return request.param
-"""
 
 
 @pytest.fixture
