@@ -18,6 +18,8 @@ from models import ChurnClassifier
 
 
 logger = logging.getLogger(__name__)
+if constants.VERBOSE:
+    logger.addHandler(logging.StreamHandler())
 # logger.addHandler(logging.FileHandler('./logs/test_churn_library.log'))
 
 

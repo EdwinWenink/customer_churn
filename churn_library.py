@@ -41,9 +41,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Get logger.
-logger = logging.getLogger(__name__)
-
 # If constants.VERBOSE, also define a stream handler to print to stdout
+logger = logging.getLogger(__name__)
 if constants.VERBOSE:
     logger.addHandler(logging.StreamHandler())
 
@@ -104,7 +103,7 @@ def perform_eda(df: pd.DataFrame, out_dir: str = 'images/eda/') -> None:
     # General statistics
     logger.info("Data shape: %s", df.shape)
     logger.info("Null values per columns:\n%s", df.isnull().sum())
-    logger.info(df.describe())
+    logger.info("\n%s", df.describe())
 
     # EDA plots
     plot_histogram(df['churn'], bins=np.arange(df['churn'].min()-.1, df['churn'].max()+.1, .1),
@@ -149,12 +148,12 @@ def encoder_helper(df: pd.DataFrame, cat_columns: List[str],
 def perform_feature_engineering(df: pd.DataFrame, response: str) ->\
       Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     '''
-    input:
-              df: pandas dataframe
-              response: string of response name [optional argument that could be used
-                        for naming variables or index y column]
+    Args:
+        df: pandas dataframe
+        response: string of response name [optional argument that could be used
+                for naming variables or index y column]
 
-    output:
+    Returns:
               X_train: X training data
               X_test: X testing data
               y_train: y training data
@@ -206,7 +205,9 @@ def classification_report_image(model_name: str,
     os.makedirs(out_dir, exist_ok=True)
 
     train_report = classification_report(y_train, y_train_preds, output_dict=False)
+    logger.info("Train report for %s:\n%s", model_name, train_report)
     test_report = classification_report(y_test, y_test_preds, output_dict=False)
+    logger.info("Test report for %s:\n%s", model_name, test_report)
 
     logger.info("Generating classification report on train and test set.")
     out_path = f"{out_dir}/{model_name}_results.png"
@@ -279,11 +280,9 @@ def main(input_path: str) -> None:
 
     # Define a Random Forest classifier + Grid Search hyperparameter tuning
     rfc_param_grid = {
-        # 'n_estimators': [200, 500],
-        'n_estimators': [10, 20],
+        'n_estimators': [10, 25, 50],
         'max_features': ['sqrt'],
-        # 'max_depth': [4, 5, 100],
-        'max_depth': [4, 5, 50],
+        'max_depth': [4, 5, 25],
         'criterion': ['gini', 'entropy']
     }
 

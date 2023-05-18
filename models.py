@@ -13,10 +13,14 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.model_selection import GridSearchCV
 from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 
+import constants
+
 warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
 warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 logger = logging.getLogger(__name__)
+if constants.VERBOSE:
+    logger.addHandler(logging.StreamHandler())
 
 
 class ChurnClassifier():
@@ -64,7 +68,6 @@ class ChurnClassifier():
                 and len(self.estimator.estimators_) > 0)):
             return self._shap_explainer
 
-        print(f"Model {self.name} needs to be fitted before calculating Shap values.")
         logger.warning("Model %s needs to be fitted before calculating Shap values.", self.name)
         check_is_fitted(self.estimator)
         return None
@@ -79,7 +82,6 @@ class ChurnClassifier():
         if self.param_grid:
             # Only perform grid search if search parameters where provided
             # The grid search returns the estimator with the highest CV score
-            logger.info("Fitting model using grid search.")
             self._estimator = grid_search(self._estimator, X_train, y_train,
                                           self.param_grid, cv=self.cv)
         else:
@@ -87,7 +89,7 @@ class ChurnClassifier():
             logger.info("Fitting model.")
             self._estimator = self._estimator.fit(X_train, y_train)
 
-        # Once the model is fitted, we can instantiate the explainer
+        # Once the model is fitted, we can instantiate the shap explainer
         if self._shap_explainer:
             try:
                 # Explainer cannot be None here so mypy warning can be ignored
@@ -120,9 +122,9 @@ def save_model(model: ChurnClassifier, save_path: str | Path):
     """
     try:
         joblib.dump(model, save_path)
-        logging.info("Persisted model %s to disk at %s", model.name, save_path)
+        logger.info("Persisted model %s to disk at %s", model.name, save_path)
     except (FileNotFoundError, KeyError) as err:
-        logging.error("During model saving the following error occurred: %s", err)
+        logger.error("During model saving the following error occurred: %s", err)
 
 
 def load_model(model_path: str | Path) -> Any:
@@ -140,7 +142,7 @@ def load_model(model_path: str | Path) -> Any:
         return joblib.load(model_path)
     except (FileNotFoundError, KeyError, UnicodeDecodeError, ValueError) as err:
         print(err)
-        logging.error("During model saving the following error occurred: %s", err)
+        logger.error("During model saving the following error occurred: %s", err)
 
 
 def grid_search(estimator: BaseEstimator, X_train: np.ndarray, y_train: np.ndarray,
@@ -160,8 +162,10 @@ def grid_search(estimator: BaseEstimator, X_train: np.ndarray, y_train: np.ndarr
 
     """
     # Perform hyperparameter search
-    grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=5, **kwargs)
+    logger.info("Fitting model using grid search over parameters\n%s with CV=%s", param_grid, cv)
+    grid = GridSearchCV(estimator=estimator, param_grid=param_grid, cv=cv, **kwargs)
     grid.fit(X_train, y_train)
+    logger.info("Best parameters during grid search:\n%s", grid.best_params_)
 
     # Return the best estimator
     return grid.best_estimator_

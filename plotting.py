@@ -17,7 +17,7 @@ from shap import Explainer
 from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 import warnings
 
-from constants import IMG_DIR, DEFAULT_FIG_SIZE
+import constants
 
 # Apply seaborn styling globally
 sns.set()
@@ -27,9 +27,11 @@ warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
 warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 logger = logging.getLogger(__name__)
+if constants.VERBOSE:
+    logger.addHandler(logging.StreamHandler())
 
 
-def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | None = None,
+def plot_histogram(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE, out_path: str | None = None,
                    *args, **kwargs) -> None:
     """Utility function to plot a histogram of a pandas series."""
     fig = plt.figure(figsize=figsize)
@@ -44,7 +46,7 @@ def plot_histogram(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | No
     save_or_show(out_path)
 
 
-def plot_normalized_barplot(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | None = None,
+def plot_normalized_barplot(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE, out_path: str | None = None,
                             *args, **kwargs) -> None:
     """Utility function to plot a bar plot using normalization."""
     plt.figure(figsize=figsize)
@@ -60,7 +62,7 @@ def plot_normalized_barplot(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path:
     save_or_show(out_path)
 
 
-def plot_hist_with_kde(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str | None = None,
+def plot_hist_with_kde(data: pd.Series, figsize=constants.DEFAULT_FIG_SIZE, out_path: str | None = None,
                        *args, **kwargs) -> None:
     """Plot a histogram with kernel density estimation."""
     plt.figure(figsize=figsize)
@@ -74,7 +76,7 @@ def plot_hist_with_kde(data: pd.Series, figsize=DEFAULT_FIG_SIZE, out_path: str 
     save_or_show(out_path)
 
 
-def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
+def plot_correlation_heatmap(df: pd.DataFrame, figsize=constants.DEFAULT_FIG_SIZE,
                              out_path: str | None = None, *args, **kwargs) -> None:
     """Plot a heatmap showing pairwise correlation between all variables."""
     plt.figure(figsize=figsize)
@@ -84,7 +86,7 @@ def plot_correlation_heatmap(df: pd.DataFrame, figsize=DEFAULT_FIG_SIZE,
 
 
 def compare_roc_curves(estimators: List[BaseEstimator], X_test: pd.DataFrame | np.ndarray,
-                       y_test: pd.Series | np.ndarray, figsize=DEFAULT_FIG_SIZE,
+                       y_test: pd.Series | np.ndarray, figsize=constants.DEFAULT_FIG_SIZE,
                        out_path: str | None = None) -> None:
     # TODO module docstring; only appropriate for probabilistic binary classifier with predict_proba
     # TODO plot_roc_curve deprecated
