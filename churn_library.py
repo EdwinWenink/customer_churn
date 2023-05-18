@@ -3,7 +3,6 @@ Module for predicting customer churn.
 """
 
 import os
-import warnings
 import logging
 from typing import List, Tuple
 from pathlib import Path
@@ -17,18 +16,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report
-from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 
-from plotting import (plot_histogram, plot_hist_with_kde,
-                      plot_normalized_barplot, plot_correlation_heatmap,
-                      compare_roc_curves, plot_classification_reports,
-                      feature_importance_plot)
-import constants
-from models import ChurnClassifier, save_model
-
-# SHAP throws numba deprecation warnings; suppress until fix is available.
-warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
-warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+from src.plotting import (plot_histogram, plot_hist_with_kde,
+                          plot_normalized_barplot, plot_correlation_heatmap,
+                          compare_roc_curves, plot_classification_reports,
+                          feature_importance_plot)
+import src.constants as constants
+from src.models import ChurnClassifier, save_model
 
 # Only needed by Udacity platform
 # import os

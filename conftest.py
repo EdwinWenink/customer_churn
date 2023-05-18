@@ -3,7 +3,7 @@ Configuration file for pytest.
 """
 
 import logging
-from typing import Literal, Callable
+from typing import Callable
 
 import pytest
 
@@ -21,6 +21,7 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
+    """Initialize logger per test item."""
     # Get the logger for the current test
     logger = logging.getLogger(item.nodeid)
 

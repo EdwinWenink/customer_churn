@@ -13,14 +13,13 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from sklearn.ensemble import RandomForestClassifier
 
-import constants
-from models import ChurnClassifier
+import src.constants as constants
+from src.models import ChurnClassifier
 
 
 logger = logging.getLogger(__name__)
 if constants.VERBOSE:
     logger.addHandler(logging.StreamHandler())
-# logger.addHandler(logging.FileHandler('./logs/test_churn_library.log'))
 
 
 def test_import(import_data, valid_input_path):
