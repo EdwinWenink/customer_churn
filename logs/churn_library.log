@@ -1,0 +1,117 @@
+2023-05-19 16:12:37,104 - __main__ - INFO - Reading data from path ./data/bank_data.csv
+2023-05-19 16:12:37,162 - __main__ - INFO - Preprocessing dataframe.
+2023-05-19 16:12:37,174 - __main__ - INFO - Data shape: (10127, 22)
+2023-05-19 16:12:37,177 - __main__ - INFO - Null values per columns:
+clientnum                   0
+attrition_flag              0
+customer_age                0
+gender                      0
+dependent_count             0
+education_level             0
+marital_status              0
+income_category             0
+card_category               0
+months_on_book              0
+total_relationship_count    0
+months_inactive_12_mon      0
+contacts_count_12_mon       0
+credit_limit                0
+total_revolving_bal         0
+avg_open_to_buy             0
+total_amt_chng_q4_q1        0
+total_trans_amt             0
+total_trans_ct              0
+total_ct_chng_q4_q1         0
+avg_utilization_ratio       0
+churn                       0
+dtype: int64
+2023-05-19 16:12:37,210 - __main__ - INFO - 
+          clientnum  customer_age  dependent_count  months_on_book  total_relationship_count  ...  total_trans_amt  total_trans_ct  total_ct_chng_q4_q1  avg_utilization_ratio         churn
+count  1.012700e+04  10127.000000     10127.000000    10127.000000              10127.000000  ...     10127.000000    10127.000000         10127.000000           10127.000000  10127.000000
+mean   7.391776e+08     46.325960         2.346203       35.928409                  3.812580  ...      4404.086304       64.858695             0.712222               0.274894      0.160660
+std    3.690378e+07      8.016814         1.298908        7.986416                  1.554408  ...      3397.129254       23.472570             0.238086               0.275691      0.367235
+min    7.080821e+08     26.000000         0.000000       13.000000                  1.000000  ...       510.000000       10.000000             0.000000               0.000000      0.000000
+25%    7.130368e+08     41.000000         1.000000       31.000000                  3.000000  ...      2155.500000       45.000000             0.582000               0.023000      0.000000
+50%    7.179264e+08     46.000000         2.000000       36.000000                  4.000000  ...      3899.000000       67.000000             0.702000               0.176000      0.000000
+75%    7.731435e+08     52.000000         3.000000       40.000000                  5.000000  ...      4741.000000       81.000000             0.818000               0.503000      0.000000
+max    8.283431e+08     73.000000         5.000000       56.000000                  6.000000  ...     18484.000000      139.000000             3.714000               0.999000      1.000000
+
+[8 rows x 16 columns]
+2023-05-19 16:12:38,183 - src.plotting - INFO - Saving figure at images/eda//churn_distribution.png
+2023-05-19 16:12:38,481 - src.plotting - INFO - Saving figure at images/eda//customer_age_distribution.png
+2023-05-19 16:12:38,778 - src.plotting - INFO - Saving figure at images/eda//marital_status_distribution.png
+2023-05-19 16:12:39,152 - src.plotting - INFO - Saving figure at images/eda//total_trans_ct_distribution.png
+2023-05-19 16:12:39,593 - src.plotting - INFO - Saving figure at images/eda//heatmap.png
+2023-05-19 16:12:39,816 - __main__ - INFO - Encoding categorical columns ['gender', 'education_level', 'marital_status', 'income_category', 'card_category']
+2023-05-19 16:12:39,846 - __main__ - INFO - Selecting features: ['customer_age', 'dependent_count', 'months_on_book', 'total_relationship_count', 'months_inactive_12_mon', 'contacts_count_12_mon', 'credit_limit', 'total_revolving_bal', 'avg_open_to_buy', 'total_amt_chng_q4_q1', 'total_trans_amt', 'total_trans_ct', 'total_ct_chng_q4_q1', 'avg_utilization_ratio', 'gender_churn', 'education_level_churn', 'marital_status_churn', 'income_category_churn', 'card_category_churn']
+2023-05-19 16:12:39,849 - __main__ - INFO - Train-test split with test proportion 0.3 (random state = 42)
+2023-05-19 16:12:39,866 - __main__ - INFO - Start training loop for models: ['LogisticRegression', 'RandomForestClassifier']
+2023-05-19 16:12:39,867 - src.models - INFO - Fitting model.
+2023-05-19 16:12:39,960 - src.models - INFO - Initializing Shap explainer after model fitting.
+2023-05-19 16:12:39,968 - src.models - INFO - Persisted model LogisticRegression to disk at models\LogisticRegression.pkl
+2023-05-19 16:12:39,969 - src.models - INFO - Predicting on data with shape (7088, 19)
+2023-05-19 16:12:39,973 - src.models - INFO - LogisticRegression: Distribution of predictions: {0: 6310, 1: 778}
+2023-05-19 16:12:39,974 - src.models - INFO - Predicting on data with shape (3039, 19)
+2023-05-19 16:12:39,976 - src.models - INFO - LogisticRegression: Distribution of predictions: {0: 2737, 1: 302}
+2023-05-19 16:12:39,988 - __main__ - INFO - Train report for LogisticRegression:
+              precision    recall  f1-score   support
+
+           0       0.91      0.96      0.94      5957
+           1       0.73      0.50      0.59      1131
+
+    accuracy                           0.89      7088
+   macro avg       0.82      0.73      0.76      7088
+weighted avg       0.88      0.89      0.88      7088
+
+2023-05-19 16:12:39,996 - __main__ - INFO - Test report for LogisticRegression:
+              precision    recall  f1-score   support
+
+           0       0.90      0.97      0.93      2543
+           1       0.72      0.44      0.54       496
+
+    accuracy                           0.88      3039
+   macro avg       0.81      0.70      0.74      3039
+weighted avg       0.87      0.88      0.87      3039
+
+2023-05-19 16:12:39,997 - __main__ - INFO - Generating classification report on train and test set.
+2023-05-19 16:12:40,130 - src.plotting - INFO - Saving figure at images/results//LogisticRegression_results.png
+2023-05-19 16:12:40,212 - src.plotting - INFO - Generating feature importance plot for LogisticRegression with Shapley values
+2023-05-19 16:12:40,362 - src.plotting - INFO - Saving figure at images/results//LogisticRegression_shap_feature_importances.png
+2023-05-19 16:12:40,477 - src.models - INFO - Fitting model using grid search over parameters
+{'n_estimators': [10, 25, 50], 'max_features': ['sqrt'], 'max_depth': [4, 5, 25], 'criterion': ['gini', 'entropy']} with CV=5
+2023-05-19 16:13:03,972 - src.models - INFO - Best parameters during grid search:
+{'criterion': 'gini', 'max_depth': 25, 'max_features': 'sqrt', 'n_estimators': 50}
+2023-05-19 16:13:03,990 - src.models - INFO - Initializing Shap explainer after model fitting.
+2023-05-19 16:13:04,070 - src.models - INFO - Persisted model RandomForestClassifier to disk at models\RandomForestClassifier.pkl
+2023-05-19 16:13:04,071 - src.models - INFO - Predicting on data with shape (7088, 19)
+2023-05-19 16:13:04,125 - src.models - INFO - RandomForestClassifier: Distribution of predictions: {0: 5958, 1: 1130}
+2023-05-19 16:13:04,126 - src.models - INFO - Predicting on data with shape (3039, 19)
+2023-05-19 16:13:04,159 - src.models - INFO - RandomForestClassifier: Distribution of predictions: {0: 2609, 1: 430}
+2023-05-19 16:13:04,173 - __main__ - INFO - Train report for RandomForestClassifier:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      5957
+           1       1.00      1.00      1.00      1131
+
+    accuracy                           1.00      7088
+   macro avg       1.00      1.00      1.00      7088
+weighted avg       1.00      1.00      1.00      7088
+
+2023-05-19 16:13:04,180 - __main__ - INFO - Test report for RandomForestClassifier:
+              precision    recall  f1-score   support
+
+           0       0.96      0.99      0.98      2543
+           1       0.93      0.81      0.87       496
+
+    accuracy                           0.96      3039
+   macro avg       0.95      0.90      0.92      3039
+weighted avg       0.96      0.96      0.96      3039
+
+2023-05-19 16:13:04,182 - __main__ - INFO - Generating classification report on train and test set.
+2023-05-19 16:13:04,353 - src.plotting - INFO - Saving figure at images/results//RandomForestClassifier_results.png
+2023-05-19 16:13:04,427 - src.plotting - INFO - Generating feature importance plot for RandomForestClassifier with Shapley values
+2023-05-19 16:13:27,387 - src.plotting - INFO - Saving figure at images/results//RandomForestClassifier_shap_feature_importances.png
+2023-05-19 16:13:27,563 - src.plotting - INFO - Generating feature importance plot for RandomForestClassifier using sklearn `feature_importances_
+2023-05-19 16:13:27,914 - src.plotting - INFO - Saving figure at images/results//RandomForestClassifier_feature_importances.png
+2023-05-19 16:13:28,114 - src.plotting - INFO - Plotting ROC curve comparison for binary classifiers.
+2023-05-19 16:13:28,289 - src.plotting - INFO - Saving figure at images/results/ROC_LogisticRegression_RandomForestClassifier.png
