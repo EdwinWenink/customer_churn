@@ -181,6 +181,7 @@ def feature_importance_plot(model: BaseEstimator, X_data: pd.DataFrame,
         # Add feature names as x-axis labels
         plt.xticks(range(X_data.shape[1]), names, rotation=90)
 
+        plt.tight_layout()
         save_or_show(f"{output_dir}/{model_name}_feature_importances.png")
         success = True
 
