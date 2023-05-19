@@ -1,0 +1,112 @@
+2023-05-19 16:16:40,452 - churn_script_logging_and_tests.py::test_import - INFO - Starting test: test_import
+2023-05-19 16:16:40,453 - churn_library - INFO - Reading data from path ./data/bank_data.csv
+2023-05-19 16:16:40,481 - churn_library - INFO - Preprocessing dataframe.
+2023-05-19 16:16:40,486 - churn_script_logging_and_tests - INFO - Data successfully imported from ./data/bank_data.csv
+2023-05-19 16:16:40,489 - churn_script_logging_and_tests.py::test_import_invalid_input - INFO - Starting test: test_import_invalid_input
+2023-05-19 16:16:40,490 - churn_library - INFO - Reading data from path ./data/bullshit.csv
+2023-05-19 16:16:40,492 - churn_script_logging_and_tests.py::test_eda - INFO - Starting test: test_eda
+2023-05-19 16:16:40,493 - churn_script_logging_and_tests - INFO - Performing EDA and storing results in temp folder.
+2023-05-19 16:16:40,493 - churn_library - INFO - Data shape: (10127, 22)
+2023-05-19 16:16:40,495 - churn_library - INFO - Null values per columns:
+clientnum                   0
+attrition_flag              0
+customer_age                0
+gender                      0
+dependent_count             0
+education_level             0
+marital_status              0
+income_category             0
+card_category               0
+months_on_book              0
+total_relationship_count    0
+months_inactive_12_mon      0
+contacts_count_12_mon       0
+credit_limit                0
+total_revolving_bal         0
+avg_open_to_buy             0
+total_amt_chng_q4_q1        0
+total_trans_amt             0
+total_trans_ct              0
+total_ct_chng_q4_q1         0
+avg_utilization_ratio       0
+churn                       0
+dtype: int64
+2023-05-19 16:16:40,523 - churn_library - INFO - 
+          clientnum  customer_age  ...  avg_utilization_ratio         churn
+count  1.012700e+04  10127.000000  ...           10127.000000  10127.000000
+mean   7.391776e+08     46.325960  ...               0.274894      0.160660
+std    3.690378e+07      8.016814  ...               0.275691      0.367235
+min    7.080821e+08     26.000000  ...               0.000000      0.000000
+25%    7.130368e+08     41.000000  ...               0.023000      0.000000
+50%    7.179264e+08     46.000000  ...               0.176000      0.000000
+75%    7.731435e+08     52.000000  ...               0.503000      0.000000
+max    8.283431e+08     73.000000  ...               0.999000      1.000000
+
+[8 rows x 16 columns]
+2023-05-19 16:16:40,763 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpdp5u6117/churn_distribution.png
+2023-05-19 16:16:41,040 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpdp5u6117/customer_age_distribution.png
+2023-05-19 16:16:41,295 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpdp5u6117/marital_status_distribution.png
+2023-05-19 16:16:41,626 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpdp5u6117/total_trans_ct_distribution.png
+2023-05-19 16:16:42,037 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpdp5u6117/heatmap.png
+2023-05-19 16:16:42,255 - churn_script_logging_and_tests - INFO - All EDA outputs were correctly stored.
+2023-05-19 16:16:42,255 - churn_script_logging_and_tests.py::test_encoder_helper - INFO - Starting test: test_encoder_helper
+2023-05-19 16:16:42,265 - churn_library - INFO - Encoding categorical columns ['gender', 'education_level', 'marital_status', 'income_category', 'card_category']
+2023-05-19 16:16:42,282 - churn_script_logging_and_tests - INFO - gender correctly encoded as gender_churn
+2023-05-19 16:16:42,283 - churn_script_logging_and_tests - INFO - education_level correctly encoded as education_level_churn
+2023-05-19 16:16:42,283 - churn_script_logging_and_tests - INFO - marital_status correctly encoded as marital_status_churn
+2023-05-19 16:16:42,283 - churn_script_logging_and_tests - INFO - income_category correctly encoded as income_category_churn
+2023-05-19 16:16:42,283 - churn_script_logging_and_tests - INFO - card_category correctly encoded as card_category_churn
+2023-05-19 16:16:42,285 - churn_script_logging_and_tests.py::test_perform_feature_engineering - INFO - Starting test: test_perform_feature_engineering
+2023-05-19 16:16:42,285 - churn_script_logging_and_tests - INFO - Input to feature engineering is a dataframe as expected.
+2023-05-19 16:16:42,285 - churn_library - INFO - Encoding categorical columns ['gender', 'education_level', 'marital_status', 'income_category', 'card_category']
+2023-05-19 16:16:42,313 - churn_library - INFO - Selecting features: ['customer_age', 'dependent_count', 'months_on_book', 'total_relationship_count', 'months_inactive_12_mon', 'contacts_count_12_mon', 'credit_limit', 'total_revolving_bal', 'avg_open_to_buy', 'total_amt_chng_q4_q1', 'total_trans_amt', 'total_trans_ct', 'total_ct_chng_q4_q1', 'avg_utilization_ratio', 'gender_churn', 'education_level_churn', 'marital_status_churn', 'income_category_churn', 'card_category_churn']
+2023-05-19 16:16:42,314 - churn_library - INFO - Train-test split with test proportion 0.3 (random state = 42)
+2023-05-19 16:16:42,317 - churn_script_logging_and_tests - INFO - The expected features are present in X_train and X_test.
+2023-05-19 16:16:42,317 - churn_script_logging_and_tests - INFO - The target label vectors have the correct shape.
+2023-05-19 16:16:42,318 - churn_script_logging_and_tests - INFO - All dataset dtypes are numeric as expected.
+2023-05-19 16:16:42,318 - churn_script_logging_and_tests - INFO - All response vectors are numeric as expected.
+2023-05-19 16:16:42,320 - churn_script_logging_and_tests.py::test_train_models - INFO - Starting test: test_train_models
+2023-05-19 16:16:42,323 - churn_script_logging_and_tests - INFO - Model name: RandomForestClassifier
+2023-05-19 16:16:42,323 - churn_library - INFO - Start training loop for models: ['RandomForestClassifier']
+2023-05-19 16:16:42,324 - src.models - INFO - Fitting model.
+2023-05-19 16:16:42,436 - src.models - INFO - Initializing Shap explainer after model fitting.
+2023-05-19 16:16:42,447 - src.models - INFO - Persisted model RandomForestClassifier to disk at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i\RandomForestClassifier.pkl
+2023-05-19 16:16:42,447 - src.models - INFO - Predicting on data with shape (7088, 19)
+2023-05-19 16:16:42,457 - src.models - INFO - RandomForestClassifier: Distribution of predictions: {0: 5978, 1: 1110}
+2023-05-19 16:16:42,457 - src.models - INFO - Predicting on data with shape (3039, 19)
+2023-05-19 16:16:42,467 - src.models - INFO - RandomForestClassifier: Distribution of predictions: {0: 2653, 1: 386}
+2023-05-19 16:16:42,477 - churn_library - INFO - Train report for RandomForestClassifier:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00      5957
+           1       1.00      0.98      0.99      1131
+
+    accuracy                           1.00      7088
+   macro avg       1.00      0.99      0.99      7088
+weighted avg       1.00      1.00      1.00      7088
+
+2023-05-19 16:16:42,477 - churn_library - INFO - Test report for RandomForestClassifier:
+              precision    recall  f1-score   support
+
+           0       0.95      0.99      0.97      2543
+           1       0.92      0.72      0.81       496
+
+    accuracy                           0.94      3039
+   macro avg       0.93      0.85      0.89      3039
+weighted avg       0.94      0.94      0.94      3039
+
+2023-05-19 16:16:42,477 - churn_library - INFO - Generating classification report on train and test set.
+2023-05-19 16:16:42,590 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i/results//RandomForestClassifier_results.png
+2023-05-19 16:16:42,652 - src.plotting - INFO - Generating feature importance plot for RandomForestClassifier with Shapley values
+2023-05-19 16:16:45,973 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i/results//RandomForestClassifier_shap_feature_importances.png
+2023-05-19 16:16:46,085 - src.plotting - INFO - Generating feature importance plot for RandomForestClassifier using sklearn `feature_importances_
+2023-05-19 16:16:46,311 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i/results//RandomForestClassifier_feature_importances.png
+2023-05-19 16:16:46,432 - src.plotting - INFO - Plotting ROC curve comparison for binary classifiers.
+2023-05-19 16:16:46,534 - src.plotting - INFO - Saving figure at C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i/results/ROC_RandomForestClassifier.png
+2023-05-19 16:16:46,720 - churn_script_logging_and_tests - INFO - Trained RandomForestClassifier
+2023-05-19 16:16:46,725 - churn_script_logging_and_tests - INFO - Contents of temp_dir ['RandomForestClassifier.pkl', 'results']:
+2023-05-19 16:16:46,725 - churn_script_logging_and_tests - INFO - Contents of temp_dir/results ['RandomForestClassifier_feature_importances.png', 'RandomForestClassifier_results.png', 'RandomForestClassifier_shap_feature_importances.png', 'ROC_RandomForestClassifier.png']:
+2023-05-19 16:16:46,725 - churn_script_logging_and_tests - INFO - Model is saved in the expected location C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i\RandomForestClassifier.pkl
+2023-05-19 16:16:46,725 - churn_script_logging_and_tests - INFO - Feature importance plots found at expected location.
+2023-05-19 16:16:46,725 - churn_script_logging_and_tests - INFO - Classification report found at expected location C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i\results\RandomForestClassifier_results.png.
+2023-05-19 16:16:46,725 - churn_script_logging_and_tests - INFO - ROC curve found at expected location C:\Users\EDWIN~1.WEN\AppData\Local\Temp\tmpqpz4z00i\results\ROC_RandomForestClassifier.png.
