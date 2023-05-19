@@ -79,7 +79,6 @@ The following diagram displays the main flow of `churn_library.py`:
 
 
 ## How to run
-How do you run your files? What should happen when you run your files?
 
 ### Getting started
 
@@ -92,6 +91,11 @@ git clone https://github.com/EdwinWenink/customer_churn.git
 ### Installing dependencies
 
 NOTE: This project requires Python 3.10.
+You can create a new conda environment with Python 3.10 using:
+
+```
+conda create -n churn python=3.10
+```
 
 This project relies on the following packages:
 
@@ -109,9 +113,9 @@ autopep8
 
 You can install dependencies in your environment of choice using the requirements file for Python 3.10:
 
-`pip install -r requirements310.txt`
+`pip install -r requirements_py310.txt`
 
-NOTE: The `shap` package is not maintained well and currently only compatible with `numpy` <=> 1.23.
+NOTE: The `shap` package is not maintained well and currently only compatible with `numpy` <= 1.23.
 
 ### Running the churning pipeline
 
@@ -138,3 +142,4 @@ pylint churn_script_logging_and_tests.py
 ```
 
 This testing script can also be invoked directly using `python` or `ipython`.
+The testing results will also be logged under `logs\churn_library.log`.
